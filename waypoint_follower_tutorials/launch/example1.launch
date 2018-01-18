@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<!-- In RVIZ, use the '2D Pose Estimate' to provide waypoints. -->
+<launch>
+
+  <!-- Launch waypoint following. -->
+  <node pkg="waypoint_follower" type="waypoint_follower_node" name="waypoint_follower" output="screen"/>
+  
+  <!-- Display on RVIZ. -->
+  <group if="true">
+    <node name="rviz" pkg="rviz" type="rviz"
+        args="-d $(find waypoint_follower_tutorials)/config/rviz1.rviz">
+    </node>
+  </group>  
+  
+</launch>

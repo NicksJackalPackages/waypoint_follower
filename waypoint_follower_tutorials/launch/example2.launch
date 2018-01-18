@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<!-- Creates a Jackal in Gazebo, then sends it to user specified waypoints using
+     RVIZ.
+     Before doing this, make sure you have installed 'my_jackal_gazebo' and can 
+     successfully launch 'one_jackal'. 
+     It's possible that RVIZ or Gazebo will fail to launch when using slow 
+     computers. -->
+<launch>
+  <!-- Creates a Jackal in Gazebo, as well as all the necessary control and
+       navigation. Default namespace is 'jackal0'. -->
+  <include file="$(find my_jackal_gazebo)/launch/one_jackal.launch"/>
+  
+  <!-- Launch waypoint following. -->
+  <node ns="jackal0" pkg="waypoint_follower" type="waypoint_follower_node" name="waypoint_follower" output="screen"/>
+  
+  <!-- Display on RVIZ. This will display where the Jackal thinks it is. To see
+       where it really is, run 'gzclient' in a new tab. -->
+  <group if="true">
+    <node name="rviz" pkg="rviz" type="rviz"
+        args="-d $(find waypoint_follower_tutorials)/config/rviz2.rviz">
+    </node>
+  </group>  
+  
+</launch>
