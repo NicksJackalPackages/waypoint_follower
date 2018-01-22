@@ -32,6 +32,7 @@ ros::Subscriber sub_add_waypoint;
 ros::Subscriber sub_move_base_result;
 ros::Subscriber sub_obs_waypoint;
 ros::Subscriber sub_set_waypoints;
+ros::Subscriber sub_upd_waypoints;
 
 typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
 MoveBaseClient* ac;
@@ -39,6 +40,9 @@ MoveBaseClient* ac;
 /**************************************************
  * Helper functions
  **************************************************/
+
+
+
 
 // Populates wp with a pointer to the waypoint. Returns the index of this waypoint
 // in waypoint_array.waypoints, or -1 if it does not exist.
@@ -84,19 +88,64 @@ void sendGoalToMoveBase(Waypoint* waypoint){
   ac->sendGoal(goal);
 }
  
+// Picks the first waypoint that is not completed, and sends that to move base.
+void startWaypointFollowing() {
+  current_waypoint_index = -1;
+  for( int i=0; i<waypoint_array.waypoints.size(); i++ ){
+    Waypoint w = waypoint_array.waypoints[i];
+    bool completed = w.completed;
+    if( !completed ){
+      current_waypoint_index = i;
+      break;
+    }
+  }
+  if( current_waypoint_index > -1 ){
+    cout << "Starting waypoint following" << endl;
+    sendGoalToMoveBase( &(waypoint_array.waypoints.at(current_waypoint_index)) );
+  } else {
+    // TO DO: CANCEL GOAL
+  }
+}
+
  /**************************************************
  * Subscriber functions
  **************************************************/
 
+// Updates the waypoint array. Does not clear.
+// If the waypoint ID does not exist yet, it will be added to the end. If it
+// does, then the relevant information will be updated e.g. a waypoint of type
+// 5 will update the pose, but it will not alter the completion status.
+void callbackUpdateWaypoints(const WaypointArray::ConstPtr& msg) {
+  WaypointArray wp = *msg;
+  for( int i=0; i<wp.waypoints.size(); i++ ){
+    Waypoint w_to_add = wp.waypoints[i];
+    Waypoint* w; 
+    int id = getWaypointByID( w_to_add.id, &w );
+    if( id == -1 ){
+      waypoint_array.waypoints.push_back(w_to_add);
+      continue;
+    }
+    int type = w_to_add.type;
+    if( type >= 4 ) {
+      // SET ID
+      type -= 4;
+    }
+    if( type >= 2 ) {
+      w->completed = w_to_add.completed;
+      type -= 2;
+    }
+    if( type > 0 ){
+      w->pose = w_to_add.pose;
+    }
+  }
+  startWaypointFollowing();
+}
+
+
 // Clears the current array and sets it to this.
 void callbackSetWaypoints(const WaypointArray::ConstPtr& msg) {
   waypoint_array = *msg;
-  current_waypoint_index = 0;
-  if( waypoint_array.waypoints.size() > 0 ) {
-    sendGoalToMoveBase( &(waypoint_array.waypoints.at(0)) );
-  } else {
-    //TO DO, CANCEL GOAL
-  }
+  startWaypointFollowing();
 }
 
 // Designed for input from RVIZ.
@@ -121,9 +170,9 @@ void callbackMoveBaseResult(const move_base_msgs::MoveBaseActionResult::ConstPtr
   int status = msg->status.status;
   if( status == msg->status.SUCCEEDED ){
     cout << "Waypoint achieved!!!" << endl;
-    current_waypoint_index++;
+    waypoint_array.waypoints[current_waypoint_index].completed = true;
     if( current_waypoint_index < waypoint_array.waypoints.size() )
-      sendGoalToMoveBase(&( waypoint_array.waypoints.at(current_waypoint_index) ) );
+      startWaypointFollowing();
   }
 } 
 
@@ -170,7 +219,8 @@ void loadSubs(ros::NodeHandle n){
   sub_add_waypoint     = n.subscribe("/initialpose",     100, callbackAddWaypoint);   
   sub_move_base_result = n.subscribe("move_base/result", 100, callbackMoveBaseResult);  
   sub_obs_waypoint     = n.subscribe("observed_waypoint",100, callbackObservedWaypoints);  
-  sub_set_waypoints    = n.subscribe("set_waypoints",    100, callbackSetWaypoints);                                    
+  sub_set_waypoints    = n.subscribe("set_waypoints",    100, callbackSetWaypoints);
+  sub_upd_waypoints    = n.subscribe("update_waypoints", 100, callbackUpdateWaypoints);                                       
 }
 
 void loadPubs(ros::NodeHandle n){
