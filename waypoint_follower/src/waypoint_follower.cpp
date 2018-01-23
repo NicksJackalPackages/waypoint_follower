@@ -115,6 +115,9 @@ void startWaypointFollowing() {
 // If the waypoint ID does not exist yet, it will be added to the end. If it
 // does, then the relevant information will be updated e.g. a waypoint of type
 // 5 will update the pose, but it will not alter the completion status.
+// TO DO - CHECK FRAME_ID AND CONVERT TO ODOM IF ITS IN MAP
+// TO DO - DETECT IF UPDATE CHANGES THE CURRENT WAYPOINT INDEX AND CHOOSE WHETHER
+// TO CALL START WAYPOINT FOLLOWING.
 void callbackUpdateWaypoints(const WaypointArray::ConstPtr& msg) {
   WaypointArray wp = *msg;
   for( int i=0; i<wp.waypoints.size(); i++ ){
@@ -137,18 +140,21 @@ void callbackUpdateWaypoints(const WaypointArray::ConstPtr& msg) {
     if( type > 0 ){
       w->pose = w_to_add.pose;
     }
+    
   }
   startWaypointFollowing();
 }
 
 
 // Clears the current array and sets it to this.
+// TO DO - CHECK FRAME_ID AND CONVERT TO ODOM IF ITS IN MAP
 void callbackSetWaypoints(const WaypointArray::ConstPtr& msg) {
   waypoint_array = *msg;
   startWaypointFollowing();
 }
 
 // Designed for input from RVIZ.
+// TO DO - CHECK FRAME_ID AND CONVERT TO ODOM IF ITS IN MAP
 void callbackAddWaypoint(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg) {
   Waypoint waypoint;
   waypoint.type = 5;
