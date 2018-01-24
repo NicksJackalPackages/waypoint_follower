@@ -45,8 +45,8 @@
                                   4.0,-4.0, 0,   0, 0, 0, 1, 
                                  -5.0, 0.0, 0,   0, 0, 0, 1, 
                                   2.0, 2.0, 0,   0, 0, 0, 1,
-                                  4.0,-4.0, 0,   0, 0, 0, 1, 
-                                  3.0, 3.0, 0,   0, 0, 0, 1]</rosparam>
+                                  1.0,-4.0, 0,   0, 0, 0, 1, 
+                                  2.0, -3.0, 0,   0, 0, 0, 1]</rosparam>
     <param name="waypoints_frame" value="map"/>
     <param name="odom_frame"      value="jackal1/odom"/>
   </node>
