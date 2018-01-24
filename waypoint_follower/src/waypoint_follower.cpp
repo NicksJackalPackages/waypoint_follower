@@ -3,26 +3,29 @@
 #include <vector>
 #include "geometry_msgs/PoseWithCovarianceStamped.h"
 #include "geometry_msgs/PoseArray.h"
+#include "geometry_msgs/TransformStamped.h"
 #include "waypoint_follower_msgs/Waypoint.h"
 #include "waypoint_follower_msgs/WaypointArray.h"
 #include <move_base_msgs/MoveBaseAction.h>
 #include <actionlib/client/simple_action_client.h>
-
+#include <tf/transform_listener.h>
 
 /* Written by Nick Sullivan, The University of Adelaide. 
    This file takes a series of waypoints and periodically sends them to 
-   move_base. The waypoints can come from a launch file, added one by one
-   from RVIZ, or all at once by a topic. 
+   move_base. The waypoints can come from a launch file, or dynamically added.
    Also supports feedback i.e. if the waypoint is observed in a new position,
    the waypoint is updated and re-sent to move_base. It is an option to not
    move to the next waypoint until feedback has seen that the waypoint is 
-   complete.*/
+   complete.
+   The waypoints are in the 'odom' frame, so they are relative to the robots
+   start position.
+*/
 
 using namespace std;
 using namespace waypoint_follower_msgs;
 
 WaypointArray waypoint_array;          //list of waypoints to complete
-int current_waypoint_index = 0;        //the index in waypoint_array
+int current_waypoint_index = -1;       //the index in waypoint_array
 int id_counter = 0;                    //for generating ID's
 string name_space;                     //prestring for frame ID's
 string frame_id;                       //"name_space/odom"
@@ -41,9 +44,6 @@ MoveBaseClient* ac;
  * Helper functions
  **************************************************/
 
-
-
-
 // Populates wp with a pointer to the waypoint. Returns the index of this waypoint
 // in waypoint_array.waypoints, or -1 if it does not exist.
 //        ptr1 -> ptr2 -> waypoint 
@@ -60,6 +60,91 @@ int getWaypointByID( int id, Waypoint **wp ){
   return -1;
 }
 
+// Given a pose belonging to frame_in, changes it to if it were from frame_out.
+// Returns whether it was successful.
+bool convertPoseFrame( geometry_msgs::Pose &p, string frame_in, string frame_out ){
+  try {
+    geometry_msgs::PoseStamped old_pose, new_pose;
+    old_pose.pose            = p;
+    old_pose.header.frame_id = frame_in;
+    old_pose.header.stamp    = ros::Time::now();
+    tf::TransformListener listener(ros::Duration(10));
+    listener.transformPose(frame_out, old_pose, new_pose);
+    cout << "old x: " << old_pose.pose.position.x << endl;
+    cout << "old y: " << old_pose.pose.position.y << endl;
+    cout << "old z: " << old_pose.pose.position.z << endl;
+    cout << "new x: " << new_pose.pose.position.x << endl;
+    cout << "new y: " << new_pose.pose.position.y << endl;
+    cout << "new z: " << new_pose.pose.position.z << endl;
+    p = new_pose.pose;
+    return true;
+  } catch (tf2::LookupException e){
+    cout << "Failed to lookup transform from " << frame_in << " to " << frame_out << endl;
+    return false;
+  }
+}
+
+// Takes an observed waypoint and updates the waypoint array. Returns whether
+// move_base should be notified that the current goal has changed.
+// TO DO - CHECK FRAME_ID AND CONVERT TO ODOM IF ITS IN MAP
+bool updateWaypoints( Waypoint wp, bool add_if_new, string wp_frame ){
+  bool no_goal_atm = current_waypoint_index == -1;
+  int type = wp.type;
+  if( type < 4 ){                          //no ID
+    return false;
+  }
+  // Get the stored waypoint or add one.
+  Waypoint* w;                             //stored waypoint
+  int index = getWaypointByID( wp.id, &w );
+  if( index == -1 ){
+    if( add_if_new ){
+      if( wp_frame != frame_id ){
+        convertPoseFrame( wp.pose, wp_frame, frame_id );
+      }
+      waypoint_array.waypoints.push_back(wp);
+      return no_goal_atm;
+    } else {
+      return false;
+    }
+  }
+  // Update components based on type.
+  bool notify = false;
+  if( type >= 4 ) {
+    type -= 4;
+  }
+  if( type >= 2 ) {
+    if( index == current_waypoint_index && w->completed != wp.completed ){
+      notify = true;
+    }
+    w->completed = wp.completed;
+    type -= 2;
+  }
+  if( type > 0 ){
+    if( index == current_waypoint_index && (
+        w->pose.position.x != wp.pose.position.x ||
+        w->pose.position.y != wp.pose.position.y ||
+        w->pose.position.z != wp.pose.position.z ||
+        w->pose.orientation.x != wp.pose.orientation.x ||
+        w->pose.orientation.y != wp.pose.orientation.y ||
+        w->pose.orientation.z != wp.pose.orientation.z ||
+        w->pose.orientation.w != wp.pose.orientation.w )){
+      notify = true;
+    }
+    // Convert to the desired frame.
+    if( wp_frame != frame_id ){
+      cout << "transforming from " << wp_frame << " to " << frame_id << endl;
+      if( convertPoseFrame( wp.pose, wp_frame, frame_id ) ){
+        w->pose = wp.pose;
+      }
+    } else {
+      w->pose = wp.pose;
+    }
+  }
+  return notify;
+}
+
+
+
 /**************************************************
  * Publisher functions
  **************************************************/
@@ -67,17 +152,18 @@ int getWaypointByID( int id, Waypoint **wp ){
 // Publishes the poses of the waypoints in the waypoint array. This is for 
 // visualising in RVIZ.
 void publishWaypointPoses(){
-   geometry_msgs::PoseArray pose_array;
-   pose_array.header.seq      = 0;
-   pose_array.header.stamp    = ros::Time::now();
-   pose_array.header.frame_id = frame_id;
-   vector<geometry_msgs::Pose> vec;
-   for( int i=current_waypoint_index; i<waypoint_array.waypoints.size(); i++ ){
-       vec.push_back( waypoint_array.waypoints.at(i).pose );
-   }
-   pose_array.poses = vec;
-   pub_waypoint_poses.publish(pose_array);
- } 
+  geometry_msgs::PoseArray pose_array;
+  pose_array.header.seq      = 0;
+  pose_array.header.stamp    = ros::Time::now();
+  pose_array.header.frame_id = frame_id;
+  vector<geometry_msgs::Pose> vec;
+  for( int i=current_waypoint_index; i<waypoint_array.waypoints.size(); i++ ){
+    if( i < 0 ) continue;
+    vec.push_back( waypoint_array.waypoints.at(i).pose );
+  }
+  pose_array.poses = vec;
+  pub_waypoint_poses.publish(pose_array);
+} 
  
 // Send a goal to move_base.
 void sendGoalToMoveBase(Waypoint* waypoint){
@@ -110,62 +196,64 @@ void startWaypointFollowing() {
  /**************************************************
  * Subscriber functions
  **************************************************/
+// Designed for input from RVIZ. Assumes values in the odom frame.
+void callbackAddWaypoint(const geometry_msgs::PoseStamped::ConstPtr& msg) {
+  Waypoint wp;
+  wp.type = 5;
+  wp.id   = id_counter++;
+  wp.pose = msg->pose;
+  if( updateWaypoints(wp, true, frame_id) ){
+    startWaypointFollowing();
+    //cout << " STARTING " << endl;
+  } else {
+    //cout << " NOT STARTING " << endl;
+  }
+}
 
-// Updates the waypoint array. Does not clear.
-// If the waypoint ID does not exist yet, it will be added to the end. If it
-// does, then the relevant information will be updated e.g. a waypoint of type
-// 5 will update the pose, but it will not alter the completion status.
-// TO DO - CHECK FRAME_ID AND CONVERT TO ODOM IF ITS IN MAP
-// TO DO - DETECT IF UPDATE CHANGES THE CURRENT WAYPOINT INDEX AND CHOOSE WHETHER
-// TO CALL START WAYPOINT FOLLOWING.
-void callbackUpdateWaypoints(const WaypointArray::ConstPtr& msg) {
+// Clears the current array and sets it to this.
+void callbackSetWaypoints(const WaypointArray::ConstPtr& msg) {
+  waypoint_array.waypoints.clear();
   WaypointArray wp = *msg;
   for( int i=0; i<wp.waypoints.size(); i++ ){
     Waypoint w_to_add = wp.waypoints[i];
-    Waypoint* w; 
-    int id = getWaypointByID( w_to_add.id, &w );
-    if( id == -1 ){
-      waypoint_array.waypoints.push_back(w_to_add);
-      continue;
-    }
-    int type = w_to_add.type;
-    if( type >= 4 ) {
-      // SET ID
-      type -= 4;
-    }
-    if( type >= 2 ) {
-      w->completed = w_to_add.completed;
-      type -= 2;
-    }
-    if( type > 0 ){
-      w->pose = w_to_add.pose;
-    }
-    
+    updateWaypoints(w_to_add, true, wp.header.frame_id);
   }
   startWaypointFollowing();
-}
-
-
-// Clears the current array and sets it to this.
-// TO DO - CHECK FRAME_ID AND CONVERT TO ODOM IF ITS IN MAP
-void callbackSetWaypoints(const WaypointArray::ConstPtr& msg) {
-  waypoint_array = *msg;
-  startWaypointFollowing();
-}
-
-// Designed for input from RVIZ.
-// TO DO - CHECK FRAME_ID AND CONVERT TO ODOM IF ITS IN MAP
-void callbackAddWaypoint(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg) {
-  Waypoint waypoint;
-  waypoint.type = 5;
-  waypoint.id   = id_counter++;
-  waypoint.pose = msg->pose.pose;
-  waypoint_array.waypoints.push_back(waypoint);
   publishWaypointPoses();
-  if( waypoint_array.waypoints.size() - current_waypoint_index == 1 ) {
-    sendGoalToMoveBase( &(waypoint_array.waypoints.at(current_waypoint_index)) );
+}
+
+// Does not clear the current array. Waypoints that are already in the array 
+// will be updated. Waypoints not in the array will be added to the end.
+void callbackUpdateWaypoints(const WaypointArray::ConstPtr& msg) {
+  bool notify = false;
+  WaypointArray wp = *msg;
+  for( int i=0; i<wp.waypoints.size(); i++ ){
+    Waypoint w_to_add = wp.waypoints[i];
+    if( updateWaypoints(w_to_add, true, wp.header.frame_id) ){
+      notify = true;
+    }
   }
-  return;
+  if( notify ){
+    startWaypointFollowing();
+  }
+  publishWaypointPoses();
+}
+
+// Does not clear the current array. Waypoints that are already in the array 
+// will be updated. Waypoints not in the array will NOT be added.
+void callbackObservedWaypoints(const WaypointArray::ConstPtr& msg) {
+  bool notify = false;
+  WaypointArray wp = *msg;
+  for( int i=0; i<wp.waypoints.size(); i++ ){
+    Waypoint w_to_add = wp.waypoints[i];
+    if( updateWaypoints(w_to_add, false, wp.header.frame_id) ){
+      notify = true;
+    }
+  }
+  if( notify ){
+    startWaypointFollowing();
+  }
+  publishWaypointPoses();
 }
 
 // Receive the status of move_base. Called when move_base will no longer pursue
@@ -177,56 +265,21 @@ void callbackMoveBaseResult(const move_base_msgs::MoveBaseActionResult::ConstPtr
   if( status == msg->status.SUCCEEDED ){
     cout << "Waypoint achieved!!!" << endl;
     waypoint_array.waypoints[current_waypoint_index].completed = true;
-    if( current_waypoint_index < waypoint_array.waypoints.size() )
-      startWaypointFollowing();
+    //if( current_waypoint_index < waypoint_array.waypoints.size() )
+    startWaypointFollowing();
   }
 } 
-
-// Receive the state of observed waypoints.
-void callbackObservedWaypoints(const WaypointArray::ConstPtr& msg) {
-  vector<Waypoint> vec = msg->waypoints;
-  for(vector<Waypoint>::iterator it = vec.begin(); it != vec.end(); ++it) {
-       int type = it->type;
-       // No shirt, no shoes, no ID, no service.
-       if( type < 4 ){
-         continue;
-       }
-       // Get the relevant waypoint that's been seen.
-       int id = it->id;
-       Waypoint* wp;
-       int index = getWaypointByID( id, &wp );
-       if ( index == -1 ){
-        continue;
-       }
-       // Update pose.
-       if( type == 5 || type == 7 ){
-          // If the pose is within some tolerance, don't bother.
-          // if TO DO
-          // TO DO
-          wp->pose = it->pose;
-       }
-       // Update completion status.
-       if( type == 6 || type == 7 ){
-          wp->completed = it->completed;
-       }
-       // Possibly resend the goal.
-       if( index == current_waypoint_index ){
-          sendGoalToMoveBase( wp );
-       }
-       publishWaypointPoses();
-   }
-}
 
 /**************************************************
  * Initialising functions
  **************************************************/
  
 void loadSubs(ros::NodeHandle n){
-  sub_add_waypoint     = n.subscribe("/initialpose",     100, callbackAddWaypoint);   
-  sub_move_base_result = n.subscribe("move_base/result", 100, callbackMoveBaseResult);  
-  sub_obs_waypoint     = n.subscribe("observed_waypoint",100, callbackObservedWaypoints);  
-  sub_set_waypoints    = n.subscribe("set_waypoints",    100, callbackSetWaypoints);
-  sub_upd_waypoints    = n.subscribe("update_waypoints", 100, callbackUpdateWaypoints);                                       
+  sub_add_waypoint     = n.subscribe("add_waypoint",      100, callbackAddWaypoint);   
+  sub_move_base_result = n.subscribe("move_base/result",  100, callbackMoveBaseResult);  
+  sub_obs_waypoint     = n.subscribe("observed_waypoints",100, callbackObservedWaypoints);  
+  sub_set_waypoints    = n.subscribe("set_waypoints",     100, callbackSetWaypoints);
+  sub_upd_waypoints    = n.subscribe("update_waypoints",  100, callbackUpdateWaypoints);                                       
 }
 
 void loadPubs(ros::NodeHandle n){
@@ -237,9 +290,15 @@ void loadPubs(ros::NodeHandle n){
 // missing.
 void loadParams(ros::NodeHandle n_priv){
   vector<double> waypoint_values;    //position (x,y,z) and orientation (x,y,z,w)
+  string waypoints_frame;
   
   // Set default parameters.
   double default_waypoint_values[] = {};
+  string default_odom_frame      = "odom";
+  string default_waypoints_frame = "odom";
+  
+  n_priv.param("odom_frame",      frame_id, default_odom_frame);
+  n_priv.param("waypoints_frame", waypoints_frame, default_waypoints_frame);
   
   // Check parameter server to override defaults.
   XmlRpc::XmlRpcValue v;
@@ -276,7 +335,8 @@ void loadParams(ros::NodeHandle n_priv){
     w.pose.orientation.y = waypoint_values[i+4];
     w.pose.orientation.z = waypoint_values[i+5];
     w.pose.orientation.w = waypoint_values[i+6];
-    waypoint_array.waypoints.push_back(w);
+    cout << "waypoints frame is: " << waypoints_frame << endl;
+    updateWaypoints( w, true, waypoints_frame );
   }
   
 }
@@ -292,17 +352,13 @@ int main(int argc, char** argv){
   loadSubs(n);
   loadPubs(n);
   loadParams(n_priv);
-  name_space = n.getNamespace().substr(1, string::npos);
-  std::ostringstream strs;
-  strs << name_space;
-  strs << "/odom";
-  frame_id = strs.str();
    
   if( waypoint_array.waypoints.size() > 0 ) {
     while(!ac->waitForServer(ros::Duration(5.0))){
       ROS_INFO("Waiting for the move_base action server to come up");
     }
-    sendGoalToMoveBase( &( waypoint_array.waypoints.at(0) ) );
+    startWaypointFollowing();
+    publishWaypointPoses();
   }
   cout << "Starting!" << endl;
   
@@ -316,3 +372,5 @@ int main(int argc, char** argv){
   delete ac;
   return 0;
 };
+
+

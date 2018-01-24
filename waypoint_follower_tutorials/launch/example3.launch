@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!-- Same as previous example, but this has a node that 'observes' a change in 
-     waypoint location. The first waypoint added will be moved to (1, 0, 0). 
+     waypoint location. The first waypoint added will be moved to (3, 0, 0). 
      This shows support for dynamic waypoint adjustment. -->
 <launch>
 
@@ -9,19 +9,22 @@
   <include file="$(find my_jackal_gazebo)/launch/one_jackal.launch"/>
   
   <!-- Launch waypoint following. -->
-  <node ns="jackal0" pkg="waypoint_follower" type="waypoint_follower_node" name="waypoint_follower" output="screen"/>
+  <node ns="jackal0" pkg="waypoint_follower" type="waypoint_follower_node" name="waypoint_follower" output="screen">
+    <param name="odom_frame" value="jackal0/odom"/>
+  </node>
   
   <!-- Publish fake waypoint observations. -->
   <node ns="jackal0" pkg="rostopic" type="rostopic" name="rostopic" args="pub 
-  -r 1 -s observed_waypoint waypoint_follower_msgs/WaypointArray
-   '{header: {stamp: now, frame_id: map},
+  -r 1 -s observed_waypoints waypoint_follower_msgs/WaypointArray
+   '{header: {stamp: now, frame_id: jackal0/odom},
      waypoints: [{type: 5, id: 0, completed: false, 
-     pose: {position: {x: 1,y: 0,z: 0}, orientation: {x: 0, y: 0, z: 0, w: 1}}}]}'"/>
+     pose: {position: {x: 3,y: 0,z: 0}, orientation: {x: 0, y: 0, z: 0, w: 1}}}]}'"/>
                                                
   <!-- Display on RVIZ. -->
   <group if="true">
     <node name="rviz" pkg="rviz" type="rviz"
         args="-d $(find waypoint_follower_tutorials)/config/rviz2.rviz">
+      <remap from="move_base_simple/goal" to="/jackal0/add_waypoint"/>
     </node>
   </group>  
   

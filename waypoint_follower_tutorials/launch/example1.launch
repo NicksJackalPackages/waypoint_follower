@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!-- In RVIZ, use the '2D Pose Estimate' to provide waypoints. -->
+<!-- In RVIZ, use the '2D Nav Goal' to provide waypoints. -->
 <launch>
 
   <!-- Launch waypoint following. -->
@@ -9,6 +9,7 @@
   <group if="true">
     <node name="rviz" pkg="rviz" type="rviz"
         args="-d $(find waypoint_follower_tutorials)/config/rviz1.rviz">
+      <remap from="move_base_simple/goal" to="/add_waypoint"/>
     </node>
   </group>  
   
