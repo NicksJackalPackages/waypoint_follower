@@ -37,7 +37,8 @@ int id_counter = 0;                    //for generating ID's
 string name_space;                     //prestring for frame ID's
 string odom_frame;                     //"name_space/odom"
 string baselink_frame;                 //"name_space/base_link"
-string waypoints_frame;				   //frame_id of launch file waypoints
+string waypoints_frame;				         //frame_id of launch file waypoints
+string move_base_name;                 //"move_base"
 bool include_robot_path;
 
 //ros::Publisher  pub_waypoint_poses;
@@ -349,12 +350,14 @@ void loadParams(ros::NodeHandle n_priv){
   double default_waypoint_values[] = {};
   string default_odom_frame      = "odom";
   string default_baselink_frame  = "base_link";
+  string default_move_base_name  = "move_base";
   bool default_include_robot_path = false;
   
   n_priv.param("baselink_frame",  baselink_frame, default_baselink_frame);
   n_priv.param("odom_frame",      odom_frame, default_odom_frame);
   n_priv.param("waypoints_frame", waypoints_frame, odom_frame);
   n_priv.param("include_robot_path", include_robot_path, default_include_robot_path);
+  n_priv.param("move_base_name", move_base_name, default_move_base_name);
   
   // Check parameter server to override defaults.
   XmlRpc::XmlRpcValue v;
@@ -406,7 +409,7 @@ int main(int argc, char** argv){
   ros::init(argc, argv, "waypoint_follower");
   ros::NodeHandle n;
   ros::NodeHandle n_priv("~");
-  ac = new MoveBaseClient("move_base", true);
+  ac = new MoveBaseClient(move_base_name, true);
   loadSubs(n);
   loadPubs(n);
   loadParams(n_priv);
