@@ -1,3 +1,2 @@
-std_msgs/Header                   header
-waypoint_follower_msgs/Waypoint[] waypoints
+waypoint_follower_msgs/WaypointStamped[] waypoints
 

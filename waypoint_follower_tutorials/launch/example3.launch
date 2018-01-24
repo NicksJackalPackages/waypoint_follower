@@ -16,9 +16,10 @@
   <!-- Publish fake waypoint observations. -->
   <node ns="jackal0" pkg="rostopic" type="rostopic" name="rostopic" args="pub 
   -r 1 -s observed_waypoints waypoint_follower_msgs/WaypointArray
-   '{header: {stamp: now, frame_id: jackal0/odom},
-     waypoints: [{type: 5, id: 0, completed: false, 
-     pose: {position: {x: 3,y: 0,z: 0}, orientation: {x: 0, y: 0, z: 0, w: 1}}}]}'"/>
+   '{waypoints: [ {header: {stamp: now, frame_id: jackal0/odom}, 
+                   waypoint:  {type: 5, id: 0, completed: false, 
+                              pose: {position: {x: 3,y: 0,z: 0}, 
+                                  orientation: {x: 0, y: 0, z: 0, w: 1}}} }]}'"/>
                                                
   <!-- Display on RVIZ. -->
   <group if="true">
