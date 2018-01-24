@@ -46,12 +46,27 @@ Visualization Manager:
       Plane Cell Count: 10
       Reference Frame: <Fixed Frame>
       Value: true
-    - Arrow Length: 0.3
-      Class: rviz/PoseArray
-      Color: 255; 25; 0
+    - Alpha: 1
+      Buffer Length: 1
+      Class: rviz/Path
+      Color: 25; 255; 0
       Enabled: true
-      Name: WaypointPoseArray
-      Topic: /waypoint_poses
+      Head Diameter: 0.1
+      Head Length: 0.1
+      Length: 0.3
+      Line Style: Lines
+      Line Width: 0.03
+      Name: WaypointPath
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0
+      Pose Color: 0; 255; 0
+      Pose Style: Arrows
+      Radius: 0.03
+      Shaft Diameter: 0.05
+      Shaft Length: 0.15
+      Topic: /waypoint_paths
       Unreliable: false
       Value: true
   Enabled: true
@@ -78,22 +93,22 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 10
+      Distance: 12.3634
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0
-        Y: 0
-        Z: 0
+        X: -0.224404
+        Y: 0.859695
+        Z: -0.385654
       Name: Current View
       Near Clip Distance: 0.01
-      Pitch: 0.785398
+      Pitch: 1.1654
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 0.785398
+      Yaw: 1.5754
     Saved: ~
 Window Geometry:
   Displays:

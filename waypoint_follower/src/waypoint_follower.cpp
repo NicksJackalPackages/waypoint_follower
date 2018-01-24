@@ -4,6 +4,7 @@
 #include "geometry_msgs/PoseWithCovarianceStamped.h"
 #include "geometry_msgs/PoseArray.h"
 #include "geometry_msgs/TransformStamped.h"
+#include "nav_msgs/Path.h"
 #include "waypoint_follower_msgs/Waypoint.h"
 #include "waypoint_follower_msgs/WaypointStamped.h"
 #include "waypoint_follower_msgs/WaypointArray.h"
@@ -35,8 +36,10 @@ int current_waypoint_index = -1;       //the index in waypoint_array
 int id_counter = 0;                    //for generating ID's
 string name_space;                     //prestring for frame ID's
 string frame_id;                       //"name_space/odom"
+string waypoints_frame;				   //frame_id of launch file waypoints
 
-ros::Publisher  pub_waypoint_poses;
+//ros::Publisher  pub_waypoint_poses;
+ros::Publisher  pub_waypoint_paths;
 ros::Subscriber sub_add_waypoint;
 ros::Subscriber sub_move_base_result;
 ros::Subscriber sub_obs_waypoint;
@@ -157,9 +160,29 @@ bool updateWaypoints( WaypointStamped ws, bool add_if_new ){
  * Publisher functions
  **************************************************/
  
+// Publishes a path message for visualisation in RVIZ. Uses the waypoints_frame
+// because RVIZ ignores the individual frames.
+void publishWaypointPaths(){
+  nav_msgs::Path p;
+  p.header.seq      = 0;
+  p.header.stamp    = ros::Time::now();
+  p.header.frame_id = waypoints_frame;
+  vector<geometry_msgs::PoseStamped> vec;
+  geometry_msgs::PoseStamped ps;
+  for( int i=current_waypoint_index; i<waypoint_array.waypoints.size(); i++ ){
+    if( i < 0 ) continue;
+    WaypointStamped ws = waypoint_array.waypoints.at(i);
+    ps.header = ws.header;
+    ps.pose   = ws.waypoint.pose;
+    vec.push_back( ps );
+  }
+  p.poses = vec;
+  pub_waypoint_paths.publish( p );
+}
+
 // Publishes the poses of the waypoints in the waypoint array. This is for 
 // visualising in RVIZ.
-void publishWaypointPoses(){
+/*void publishWaypointPoses(){
   geometry_msgs::PoseArray pose_array;
   pose_array.header.seq      = 0;
   pose_array.header.stamp    = ros::Time::now();
@@ -175,7 +198,7 @@ void publishWaypointPoses(){
   }
   pose_array.poses = vec;
   pub_waypoint_poses.publish(pose_array);
-} 
+} */
  
 // Send a goal to move_base.
 void sendGoalToMoveBase(WaypointStamped* ws){
@@ -223,7 +246,7 @@ void callbackAddWaypoint(const geometry_msgs::PoseStamped::ConstPtr& msg) {
   if( updateWaypoints(ws, true) ){
     startWaypointFollowing();
   } 
-  publishWaypointPoses();
+  publishWaypointPaths();
 }
 
 // Clears the current array and sets it to this.
@@ -235,7 +258,7 @@ void callbackSetWaypoints(const WaypointArray::ConstPtr& msg) {
     updateWaypoints(ws_to_add, true);
   }
   startWaypointFollowing();
-  publishWaypointPoses();
+  publishWaypointPaths();
 }
 
 // Does not clear the current array. Waypoints that are already in the array 
@@ -252,7 +275,7 @@ void callbackUpdateWaypoints(const WaypointArray::ConstPtr& msg) {
   if( notify ){
     startWaypointFollowing();
   }
-  publishWaypointPoses();
+  publishWaypointPaths();
 }
 
 // Does not clear the current array. Waypoints that are already in the array 
@@ -269,7 +292,7 @@ void callbackObservedWaypoints(const WaypointArray::ConstPtr& msg) {
   if( notify ){
     startWaypointFollowing();
   }
-  publishWaypointPoses();
+  publishWaypointPaths();
 }
 
 // Receive the status of move_base. Called when move_base will no longer pursue
@@ -282,7 +305,7 @@ void callbackMoveBaseResult(const move_base_msgs::MoveBaseActionResult::ConstPtr
     cout << "Waypoint achieved!!!" << endl;
     waypoint_array.waypoints[current_waypoint_index].waypoint.completed = true;
     startWaypointFollowing();
-    publishWaypointPoses();
+    publishWaypointPaths();
   }
 } 
 
@@ -299,22 +322,21 @@ void loadSubs(ros::NodeHandle n){
 }
 
 void loadPubs(ros::NodeHandle n){
-  pub_waypoint_poses = n.advertise<geometry_msgs::PoseArray>("waypoint_poses", 100);
+  //pub_waypoint_poses = n.advertise<geometry_msgs::PoseArray>("waypoint_poses", 100);
+  pub_waypoint_paths = n.advertise<nav_msgs::Path>("waypoint_paths", 100);
 }
 
 // Loads parameters from the launch file. Uses default values if any values are
 // missing.
 void loadParams(ros::NodeHandle n_priv){
   vector<double> waypoint_values;    //position (x,y,z) and orientation (x,y,z,w)
-  string waypoints_frame;
   
   // Set default parameters.
   double default_waypoint_values[] = {};
   string default_odom_frame      = "odom";
-  string default_waypoints_frame = "odom";
   
   n_priv.param("odom_frame",      frame_id, default_odom_frame);
-  n_priv.param("waypoints_frame", waypoints_frame, default_waypoints_frame);
+  n_priv.param("waypoints_frame", waypoints_frame, frame_id);
   
   // Check parameter server to override defaults.
   XmlRpc::XmlRpcValue v;
@@ -376,7 +398,7 @@ int main(int argc, char** argv){
       ROS_INFO("Waiting for the move_base action server to come up");
     }
     startWaypointFollowing();
-    publishWaypointPoses();
+    publishWaypointPaths();
   }
   cout << "Starting!" << endl;
   
@@ -384,7 +406,7 @@ int main(int argc, char** argv){
   
   /*ros::Rate r(5);
   while( ros::ok() ){
-    publishWaypointPoses();
+    publishWaypointPaths();
     ros::spinOnce();
     r.sleep();
   }*/

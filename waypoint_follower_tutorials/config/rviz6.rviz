@@ -48,13 +48,13 @@ Visualization Manager:
       Value: true
     - Class: rviz/InteractiveMarkers
       Enable Transparency: true
-      Enabled: false
+      Enabled: true
       Name: Jackal0-InteractiveMarkers
       Show Axes: false
-      Show Descriptions: true
+      Show Descriptions: false
       Show Visual Aids: false
       Update Topic: /jackal0/twist_marker_server/update
-      Value: false
+      Value: true
     - Alpha: 1
       Class: rviz/RobotModel
       Collision Enabled: false
@@ -65,61 +65,6 @@ Visualization Manager:
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
-        base_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        chassis_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        fenders_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        front_left_wheel_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        front_mount:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        front_right_wheel_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        imu_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        mid_mount:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        navsat_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        rear_left_wheel_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        rear_mount:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        rear_right_wheel_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
       Name: Jackal0-RobotModel
       Robot Description: jackal0/robot_description
       TF Prefix: jackal0
@@ -136,7 +81,7 @@ Visualization Manager:
       Length: 0.3
       Line Style: Lines
       Line Width: 0.03
-      Name: Jackal0-Path
+      Name: Jackal0-GoalPath
       Offset:
         X: 0
         Y: 0
@@ -149,27 +94,27 @@ Visualization Manager:
       Topic: /jackal0/move_base/NavfnROS/plan
       Unreliable: false
       Value: true
-    - Arrow Length: 0.3
-      Class: rviz/PoseArray
-      Color: 255; 170; 0
-      Enabled: true
-      Name: Jackal0-PoseArray
-      Topic: /jackal0/waypoint_poses
-      Unreliable: false
-      Value: true
     - Alpha: 1
-      Axes Length: 1
-      Axes Radius: 0.1
-      Class: rviz/Pose
+      Buffer Length: 1
+      Class: rviz/Path
       Color: 255; 170; 0
       Enabled: true
-      Head Length: 0.15
-      Head Radius: 0.2
-      Name: Jackal0-GoalPose
-      Shaft Length: 0.25
-      Shaft Radius: 0.1
-      Shape: Arrow
-      Topic: /jackal0/move_base/current_goal
+      Head Diameter: 0.1
+      Head Length: 0.1
+      Length: 0.3
+      Line Style: Lines
+      Line Width: 0.03
+      Name: Jackal0-WaypointPath
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0
+      Pose Color: 255; 170; 0
+      Pose Style: Arrows
+      Radius: 0.03
+      Shaft Diameter: 0.05
+      Shaft Length: 0.15
+      Topic: ""
       Unreliable: false
       Value: true
     - Alpha: 1
@@ -182,61 +127,6 @@ Visualization Manager:
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
-        base_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        chassis_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        fenders_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        front_left_wheel_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        front_mount:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        front_right_wheel_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        imu_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        mid_mount:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        navsat_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        rear_left_wheel_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        rear_mount:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        rear_right_wheel_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
       Name: Jackal1-RobotModel
       Robot Description: jackal1/robot_description
       TF Prefix: jackal1
@@ -253,7 +143,7 @@ Visualization Manager:
       Length: 0.3
       Line Style: Lines
       Line Width: 0.03
-      Name: Jackal1-Path
+      Name: Jackal1-GoalPath
       Offset:
         X: 0
         Y: 0
@@ -266,27 +156,27 @@ Visualization Manager:
       Topic: /jackal1/move_base/NavfnROS/plan
       Unreliable: false
       Value: true
-    - Arrow Length: 0.3
-      Class: rviz/PoseArray
-      Color: 0; 255; 0
-      Enabled: true
-      Name: Jackal1-PoseArray
-      Topic: /jackal1/waypoint_poses
-      Unreliable: false
-      Value: true
     - Alpha: 1
-      Axes Length: 1
-      Axes Radius: 0.1
-      Class: rviz/Pose
-      Color: 0; 255; 0
+      Buffer Length: 1
+      Class: rviz/Path
+      Color: 25; 255; 0
       Enabled: true
-      Head Length: 0.15
-      Head Radius: 0.2
-      Name: Jackal1-GoalPose
-      Shaft Length: 0.25
-      Shaft Radius: 0.1
-      Shape: Arrow
-      Topic: /jackal1/move_base/current_goal
+      Head Diameter: 0.1
+      Head Length: 0.1
+      Length: 0.3
+      Line Style: Lines
+      Line Width: 0.03
+      Name: Jackal1-WaypointPath
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0
+      Pose Color: 0; 255; 0
+      Pose Style: Arrows
+      Radius: 0.03
+      Shaft Diameter: 0.05
+      Shaft Length: 0.15
+      Topic: ""
       Unreliable: false
       Value: true
     - Alpha: 1
@@ -299,75 +189,12 @@ Visualization Manager:
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
-        base_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        chassis_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        fenders_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        front_left_wheel_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        front_mount:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        front_right_wheel_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        imu_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        mid_mount:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        navsat_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        rear_left_wheel_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        rear_mount:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        rear_right_wheel_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
       Name: Jackal2-RobotModel
       Robot Description: jackal2/robot_description
       TF Prefix: jackal2
       Update Interval: 0
       Value: true
       Visual Enabled: true
-    - Arrow Length: 0.3
-      Class: rviz/PoseArray
-      Color: 255; 25; 0
-      Enabled: true
-      Name: Jackal2-PoseArray
-      Topic: /jackal2/waypoint_poses
-      Unreliable: false
-      Value: true
     - Alpha: 1
       Buffer Length: 1
       Class: rviz/Path
@@ -378,7 +205,7 @@ Visualization Manager:
       Length: 0.3
       Line Style: Lines
       Line Width: 0.03
-      Name: Jackal2-Path
+      Name: Jackal2-GoalPath
       Offset:
         X: 0
         Y: 0
@@ -392,18 +219,26 @@ Visualization Manager:
       Unreliable: false
       Value: true
     - Alpha: 1
-      Axes Length: 1
-      Axes Radius: 0.1
-      Class: rviz/Pose
+      Buffer Length: 1
+      Class: rviz/Path
       Color: 255; 0; 0
       Enabled: true
-      Head Length: 0.15
-      Head Radius: 0.2
-      Name: Jackal2-GoalPose
-      Shaft Length: 0.25
-      Shaft Radius: 0.1
-      Shape: Arrow
-      Topic: /jackal2/move_base/current_goal
+      Head Diameter: 0.1
+      Head Length: 0.1
+      Length: 0.3
+      Line Style: Lines
+      Line Width: 0.03
+      Name: Jackal2-WaypointPath
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0
+      Pose Color: 255; 0; 0
+      Pose Style: Arrows
+      Radius: 0.03
+      Shaft Diameter: 0.05
+      Shaft Length: 0.15
+      Topic: ""
       Unreliable: false
       Value: true
   Enabled: true
@@ -463,5 +298,5 @@ Window Geometry:
   Views:
     collapsed: true
   Width: 1855
-  X: 65
-  Y: 24
+  X: 55
+  Y: -14

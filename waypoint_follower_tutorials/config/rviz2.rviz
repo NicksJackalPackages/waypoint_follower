@@ -4,7 +4,7 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded: ~
-      Splitter Ratio: 0.838889
+      Splitter Ratio: 0.558333
     Tree Height: 679
   - Class: rviz/Selection
     Name: Selection
@@ -45,14 +45,6 @@ Visualization Manager:
       Plane: XY
       Plane Cell Count: 10
       Reference Frame: <Fixed Frame>
-      Value: true
-    - Arrow Length: 0.3
-      Class: rviz/PoseArray
-      Color: 0; 255; 0
-      Enabled: true
-      Name: WaypointPoseArray
-      Topic: /jackal0/waypoint_poses
-      Unreliable: false
       Value: true
     - Class: rviz/InteractiveMarkers
       Enable Transparency: true
@@ -160,38 +152,46 @@ Visualization Manager:
       Buffer Length: 1
       Class: rviz/Path
       Color: 25; 255; 0
-      Enabled: false
-      Head Diameter: 0.3
-      Head Length: 0.2
+      Enabled: true
+      Head Diameter: 0.1
+      Head Length: 0.1
       Length: 0.3
       Line Style: Lines
       Line Width: 0.03
-      Name: Path
+      Name: WaypointPath
       Offset:
         X: 0
         Y: 0
         Z: 0
-      Pose Color: 255; 85; 255
+      Pose Color: 0; 255; 0
+      Pose Style: Arrows
+      Radius: 0.03
+      Shaft Diameter: 0.05
+      Shaft Length: 0.15
+      Topic: /jackal0/waypoint_paths
+      Unreliable: false
+      Value: true
+    - Alpha: 1
+      Buffer Length: 1
+      Class: rviz/Path
+      Color: 25; 255; 0
+      Enabled: true
+      Head Diameter: 0.2
+      Head Length: 0.1
+      Length: 0.3
+      Line Style: Lines
+      Line Width: 0.03
+      Name: MovebasePath
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0
+      Pose Color: 0; 255; 0
       Pose Style: None
       Radius: 0.03
-      Shaft Diameter: 0.1
-      Shaft Length: 0.1
-      Topic: /jackal0/move_base/NavfnROS/plan
-      Unreliable: false
-      Value: false
-    - Alpha: 1
-      Axes Length: 1
-      Axes Radius: 0.1
-      Class: rviz/Pose
-      Color: 0; 255; 0
-      Enabled: true
-      Head Length: 0.15
-      Head Radius: 0.2
-      Name: GoalPose
+      Shaft Diameter: 0.15
       Shaft Length: 0.25
-      Shaft Radius: 0.1
-      Shape: Arrow
-      Topic: /jackal0/move_base/current_goal
+      Topic: /jackal0/move_base/NavfnROS/plan
       Unreliable: false
       Value: true
   Enabled: true
