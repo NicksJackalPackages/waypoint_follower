@@ -175,7 +175,7 @@ Visualization Manager:
       Buffer Length: 1
       Class: rviz/Path
       Color: 25; 255; 0
-      Enabled: true
+      Enabled: false
       Head Diameter: 0.200000003
       Head Length: 0.100000001
       Length: 0.300000012
@@ -193,7 +193,7 @@ Visualization Manager:
       Shaft Length: 0.25
       Topic: /jackal0/move_base/NavfnROS/plan
       Unreliable: false
-      Value: true
+      Value: false
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48

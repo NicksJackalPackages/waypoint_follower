@@ -35,8 +35,10 @@ WaypointArray waypoint_array;          //list of waypoints to complete
 int current_waypoint_index = -1;       //the index in waypoint_array
 int id_counter = 0;                    //for generating ID's
 string name_space;                     //prestring for frame ID's
-string frame_id;                       //"name_space/odom"
+string odom_frame;                     //"name_space/odom"
+string baselink_frame;                 //"name_space/base_link"
 string waypoints_frame;				   //frame_id of launch file waypoints
+bool include_robot_path;
 
 //ros::Publisher  pub_waypoint_poses;
 ros::Publisher  pub_waypoint_paths;
@@ -110,9 +112,9 @@ bool updateWaypoints( WaypointStamped ws, bool add_if_new ){
   int index = getWaypointByID( ws.waypoint.id, &w );
   if( index == -1 ){
     if( add_if_new ){
-      /*if( ws.header.frame_id != frame_id ){
-        convertPoseFrame( ws.waypoint.pose, ws.header.frame_id, frame_id );
-        ws.header.frame_id = frame_id;
+      /*if( ws.header.frame_id != odom_frame ){
+        convertPoseFrame( ws.waypoint.pose, ws.header.frame_id, odom_frame );
+        ws.header.frame_id = odom_frame;
       }*/
       waypoint_array.waypoints.push_back(ws);
       return no_goal_atm;
@@ -144,9 +146,9 @@ bool updateWaypoints( WaypointStamped ws, bool add_if_new ){
       notify = true;
     }
     // Convert to the desired frame.
-    /*if( ws.header.frame_id != frame_id ){
-      cout << "transforming from " << ws.header.frame_id << " to " << frame_id << endl;
-      if( convertPoseFrame( ws.waypoint.pose, ws.header.frame_id, frame_id ) ){
+    /*if( ws.header.frame_id != odom_frame ){
+      cout << "transforming from " << ws.header.frame_id << " to " << odom_frame << endl;
+      if( convertPoseFrame( ws.waypoint.pose, ws.header.frame_id, odom_frame ) ){
         w->waypoint.pose = ws.waypoint.pose;
       }
     } else {*/
@@ -161,7 +163,8 @@ bool updateWaypoints( WaypointStamped ws, bool add_if_new ){
  **************************************************/
  
 // Publishes a path message for visualisation in RVIZ. Uses the waypoints_frame
-// because RVIZ ignores the individual frames.
+// because RVIZ ignores the individual frames. The first point in the path is 
+// the robots base_link.
 void publishWaypointPaths(){
   nav_msgs::Path p;
   p.header.seq      = 0;
@@ -169,6 +172,17 @@ void publishWaypointPaths(){
   p.header.frame_id = waypoints_frame;
   vector<geometry_msgs::PoseStamped> vec;
   geometry_msgs::PoseStamped ps;
+  // Add robot start position.
+  if( include_robot_path ){
+    geometry_msgs::Pose pose;
+    pose.orientation.w = 1;
+    convertPoseFrame( pose, baselink_frame, waypoints_frame );
+    ps.header.stamp = ros::Time::now();
+    ps.header.frame_id = waypoints_frame;
+    ps.pose = pose;
+    vec.push_back( ps );
+  }
+  // Add waypoints.
   for( int i=current_waypoint_index; i<waypoint_array.waypoints.size(); i++ ){
     if( i < 0 ) continue;
     WaypointStamped ws = waypoint_array.waypoints.at(i);
@@ -186,13 +200,13 @@ void publishWaypointPaths(){
   geometry_msgs::PoseArray pose_array;
   pose_array.header.seq      = 0;
   pose_array.header.stamp    = ros::Time::now();
-  pose_array.header.frame_id = frame_id;
+  pose_array.header.frame_id = odom_frame;
   vector<geometry_msgs::Pose> vec;
   for( int i=current_waypoint_index; i<waypoint_array.waypoints.size(); i++ ){
     if( i < 0 ) continue;
     geometry_msgs::Pose p = waypoint_array.waypoints.at(i).waypoint.pose;
-    if( waypoint_array.waypoints.at(i).header.frame_id != frame_id ){
-      convertPoseFrame( p, waypoint_array.waypoints.at(i).header.frame_id, frame_id);
+    if( waypoint_array.waypoints.at(i).header.frame_id != odom_frame ){
+      convertPoseFrame( p, waypoint_array.waypoints.at(i).header.frame_id, odom_frame);
     }
     vec.push_back( p );
   }
@@ -202,7 +216,7 @@ void publishWaypointPaths(){
  
 // Send a goal to move_base.
 void sendGoalToMoveBase(WaypointStamped* ws){
-  //cout << "sending to move base!: " << frame_id << endl;
+  //cout << "sending to move base!: " << odom_frame << endl;
   move_base_msgs::MoveBaseGoal goal;
   goal.target_pose.header.frame_id = ws->header.frame_id;
   goal.target_pose.header.stamp    = ros::Time::now();
@@ -239,7 +253,7 @@ void startWaypointFollowing() {
 void callbackAddWaypoint(const geometry_msgs::PoseStamped::ConstPtr& msg) {
   WaypointStamped ws;
   ws.header.stamp    = ros::Time::now();
-  ws.header.frame_id = frame_id;
+  ws.header.frame_id = odom_frame;
   ws.waypoint.type = 5;
   ws.waypoint.id   = id_counter++;
   ws.waypoint.pose = msg->pose;
@@ -334,9 +348,13 @@ void loadParams(ros::NodeHandle n_priv){
   // Set default parameters.
   double default_waypoint_values[] = {};
   string default_odom_frame      = "odom";
+  string default_baselink_frame  = "base_link";
+  bool default_include_robot_path = false;
   
-  n_priv.param("odom_frame",      frame_id, default_odom_frame);
-  n_priv.param("waypoints_frame", waypoints_frame, frame_id);
+  n_priv.param("baselink_frame",  baselink_frame, default_baselink_frame);
+  n_priv.param("odom_frame",      odom_frame, default_odom_frame);
+  n_priv.param("waypoints_frame", waypoints_frame, odom_frame);
+  n_priv.param("include_robot_path", include_robot_path, default_include_robot_path);
   
   // Check parameter server to override defaults.
   XmlRpc::XmlRpcValue v;

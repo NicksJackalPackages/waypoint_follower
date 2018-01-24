@@ -65,6 +65,30 @@ Visualization Manager:
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
+        ar_marker_0:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        ar_marker_1:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        ar_marker_2:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        ar_marker_3:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        ar_marker_4:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        ar_marker_5:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
         base_link:
           Alpha: 1
           Show Axes: false
@@ -79,23 +103,6 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-        front_camera:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        front_camera_mount:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        front_camera_optical:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        front_camera_pivot:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
         front_left_wheel_link:
           Alpha: 1
           Show Axes: false
@@ -123,11 +130,6 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-        rear_camera:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
         rear_left_wheel_link:
           Alpha: 1
           Show Axes: false
@@ -142,6 +144,11 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
+        tag_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
       Name: Jackal0-RobotModel
       Robot Description: jackal0/robot_description
       TF Prefix: jackal0
@@ -152,7 +159,7 @@ Visualization Manager:
       Buffer Length: 1
       Class: rviz/Path
       Color: 255; 170; 0
-      Enabled: true
+      Enabled: false
       Head Diameter: 0.300000012
       Head Length: 0.200000003
       Length: 0.300000012
@@ -170,7 +177,7 @@ Visualization Manager:
       Shaft Length: 0.100000001
       Topic: /jackal0/move_base/NavfnROS/plan
       Unreliable: false
-      Value: true
+      Value: false
     - Alpha: 1
       Buffer Length: 1
       Class: rviz/Path
@@ -204,6 +211,30 @@ Visualization Manager:
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
+        ar_marker_10:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        ar_marker_11:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        ar_marker_6:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        ar_marker_7:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        ar_marker_8:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        ar_marker_9:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
         base_link:
           Alpha: 1
           Show Axes: false
@@ -218,23 +249,6 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-        front_camera:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        front_camera_mount:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        front_camera_optical:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        front_camera_pivot:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
         front_left_wheel_link:
           Alpha: 1
           Show Axes: false
@@ -262,11 +276,6 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-        rear_camera:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
         rear_left_wheel_link:
           Alpha: 1
           Show Axes: false
@@ -281,6 +290,11 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
+        tag_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
       Name: Jackal1-RobotModel
       Robot Description: jackal1/robot_description
       TF Prefix: jackal1
@@ -291,7 +305,7 @@ Visualization Manager:
       Buffer Length: 1
       Class: rviz/Path
       Color: 25; 255; 0
-      Enabled: true
+      Enabled: false
       Head Diameter: 0.300000012
       Head Length: 0.200000003
       Length: 0.300000012
@@ -309,7 +323,7 @@ Visualization Manager:
       Shaft Length: 0.100000001
       Topic: /jackal1/move_base/NavfnROS/plan
       Unreliable: false
-      Value: true
+      Value: false
     - Alpha: 1
       Buffer Length: 1
       Class: rviz/Path
@@ -430,7 +444,7 @@ Visualization Manager:
       Buffer Length: 1
       Class: rviz/Path
       Color: 255; 0; 0
-      Enabled: true
+      Enabled: false
       Head Diameter: 0.300000012
       Head Length: 0.200000003
       Length: 0.300000012
@@ -448,7 +462,7 @@ Visualization Manager:
       Shaft Length: 0.100000001
       Topic: /jackal2/move_base/NavfnROS/plan
       Unreliable: false
-      Value: true
+      Value: false
     - Alpha: 1
       Buffer Length: 1
       Class: rviz/Path
