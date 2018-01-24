@@ -179,10 +179,14 @@ void publishWaypointPoses(){
  
 // Send a goal to move_base.
 void sendGoalToMoveBase(WaypointStamped* ws){
+  //cout << "sending to move base!: " << frame_id << endl;
   move_base_msgs::MoveBaseGoal goal;
   goal.target_pose.header.frame_id = ws->header.frame_id;
   goal.target_pose.header.stamp    = ros::Time::now();
   goal.target_pose.pose            = ws->waypoint.pose;
+  //cout << "frame: " << ws->header.frame_id << endl;
+  //cout << "x: " << ws->waypoint.pose.position.x << endl;
+  //cout << "y: " << ws->waypoint.pose.position.y << endl;
   ac->sendGoal(goal);
 }
  
@@ -219,6 +223,7 @@ void callbackAddWaypoint(const geometry_msgs::PoseStamped::ConstPtr& msg) {
   if( updateWaypoints(ws, true) ){
     startWaypointFollowing();
   } 
+  publishWaypointPoses();
 }
 
 // Clears the current array and sets it to this.
