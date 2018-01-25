@@ -44,6 +44,7 @@ bool include_robot_path;
 
 //ros::Publisher  pub_waypoint_poses;
 ros::Publisher  pub_waypoint_paths;
+ros::Publisher  pub_completed_paths;
 ros::Subscriber sub_add_waypoint;
 ros::Subscriber sub_move_base_result;
 ros::Subscriber sub_obs_waypoint;
@@ -164,9 +165,43 @@ bool updateWaypoints( WaypointStamped ws, bool add_if_new ){
  * Publisher functions
  **************************************************/
  
-// Publishes a path message for visualisation in RVIZ. Uses the waypoints_frame
-// because RVIZ ignores the individual frames. The first point in the path is 
-// the robots base_link.
+ 
+// Publishes completed tasks for visualisation in RVIZ. Uses the rviz_frame. 
+// The first point in the path can be the robots base_link.
+void publishCompletedPaths(){
+  nav_msgs::Path p;
+  p.header.seq      = 0;
+  p.header.stamp    = ros::Time::now();
+  p.header.frame_id = rviz_frame;
+  vector<geometry_msgs::PoseStamped> vec;
+  geometry_msgs::PoseStamped ps;
+  // Add robot start position.
+  /*if( include_robot_path ){
+    geometry_msgs::Pose pose;
+    pose.orientation.w = 1;
+    convertPoseFrame( pose, baselink_frame, rviz_frame );
+    ps.header.stamp = ros::Time::now();
+    ps.header.frame_id = waypoints_frame;
+    ps.pose = pose;
+    vec.push_back( ps );
+  }*/
+  // Add waypoints.
+  int end = current_waypoint_index;
+  if( end < 0 ) end = waypoint_array.waypoints.size();
+  for( int i=0; i<end; i++ ){
+    WaypointStamped ws = waypoint_array.waypoints.at(i);
+    ps.header = ws.header;
+    ps.pose   = ws.waypoint.pose;
+    convertPoseFrame( ps.pose, ws.header.frame_id, rviz_frame );
+    ps.header.frame_id = rviz_frame;
+    vec.push_back( ps );
+  }
+  p.poses = vec;
+  pub_completed_paths.publish( p );
+}
+
+// Publishes a path message for visualisation in RVIZ. Uses the rviz_frame. 
+// The first point in the path can be the robots base_link.
 void publishWaypointPaths(){
   nav_msgs::Path p;
   p.header.seq      = 0;
@@ -196,7 +231,9 @@ void publishWaypointPaths(){
   }
   p.poses = vec;
   pub_waypoint_paths.publish( p );
+  publishCompletedPaths();
 }
+
 
 // Publishes the poses of the waypoints in the waypoint array. This is for 
 // visualising in RVIZ.
@@ -342,6 +379,7 @@ void loadSubs(ros::NodeHandle n){
 void loadPubs(ros::NodeHandle n){
   //pub_waypoint_poses = n.advertise<geometry_msgs::PoseArray>("waypoint_poses", 100);
   pub_waypoint_paths = n.advertise<nav_msgs::Path>("waypoint_paths", 100);
+  pub_completed_paths = n.advertise<nav_msgs::Path>("completed_paths", 100);
 }
 
 // Loads parameters from the launch file. Uses default values if any values are
