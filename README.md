@@ -40,6 +40,10 @@ Reports when a waypoint has been reached.
 
 The incomplete waypoints. Published whenever the waypoint list is updated. Uses the frame `~rviz_frame`.
 
+`completed_paths` ([`nav_msgs/Path`](http://docs.ros.org/api/nav_msgs/html/msg/Path.html))
+
+The completed waypoints. Published whenever the waypoint list is updated. Uses the frame `~rviz_frame`.
+
 #### 1.1.3 Parameters
 
 `~move_base_name` (`string`, default: `"move_base"`)
