@@ -19,6 +19,7 @@
     <param name="waypoints_frame"    value="map"/>
     <param name="odom_frame"         value="jackal0/odom"/>
     <param name="baselink_frame"     value="jackal0/base_link"/>
+    <param name="rviz_frame"         value="map"/>
     <param name="include_robot_path" value="true"/>
   </node>
                                        
@@ -26,6 +27,7 @@
   <group if="true">
     <node name="rviz" pkg="rviz" type="rviz"
         args="-d $(find waypoint_follower_tutorials)/config/rviz2.rviz">
+      <remap from="move_base_simple/goal" to="/jackal0/add_waypoint"/>
     </node>
   </group>  
   

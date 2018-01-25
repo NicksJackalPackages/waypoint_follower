@@ -38,6 +38,7 @@ string name_space;                     //prestring for frame ID's
 string odom_frame;                     //"name_space/odom"
 string baselink_frame;                 //"name_space/base_link"
 string waypoints_frame;				         //frame_id of launch file waypoints
+string rviz_frame;                     //frame_id of added/displayed points in RVIZ
 string move_base_name;                 //"move_base"
 bool include_robot_path;
 
@@ -170,14 +171,14 @@ void publishWaypointPaths(){
   nav_msgs::Path p;
   p.header.seq      = 0;
   p.header.stamp    = ros::Time::now();
-  p.header.frame_id = waypoints_frame;
+  p.header.frame_id = rviz_frame;
   vector<geometry_msgs::PoseStamped> vec;
   geometry_msgs::PoseStamped ps;
   // Add robot start position.
   if( include_robot_path ){
     geometry_msgs::Pose pose;
     pose.orientation.w = 1;
-    convertPoseFrame( pose, baselink_frame, waypoints_frame );
+    convertPoseFrame( pose, baselink_frame, rviz_frame );
     ps.header.stamp = ros::Time::now();
     ps.header.frame_id = waypoints_frame;
     ps.pose = pose;
@@ -189,6 +190,8 @@ void publishWaypointPaths(){
     WaypointStamped ws = waypoint_array.waypoints.at(i);
     ps.header = ws.header;
     ps.pose   = ws.waypoint.pose;
+    convertPoseFrame( ps.pose, ws.header.frame_id, rviz_frame );
+    ps.header.frame_id = rviz_frame;
     vec.push_back( ps );
   }
   p.poses = vec;
@@ -254,7 +257,7 @@ void startWaypointFollowing() {
 void callbackAddWaypoint(const geometry_msgs::PoseStamped::ConstPtr& msg) {
   WaypointStamped ws;
   ws.header.stamp    = ros::Time::now();
-  ws.header.frame_id = odom_frame;
+  ws.header.frame_id = rviz_frame;
   ws.waypoint.type = 5;
   ws.waypoint.id   = id_counter++;
   ws.waypoint.pose = msg->pose;
@@ -353,11 +356,12 @@ void loadParams(ros::NodeHandle n_priv){
   string default_move_base_name  = "move_base";
   bool default_include_robot_path = false;
   
-  n_priv.param("baselink_frame",  baselink_frame, default_baselink_frame);
-  n_priv.param("odom_frame",      odom_frame, default_odom_frame);
-  n_priv.param("waypoints_frame", waypoints_frame, odom_frame);
+  n_priv.param("baselink_frame",     baselink_frame,     default_baselink_frame);
+  n_priv.param("odom_frame",         odom_frame,         default_odom_frame);
+  n_priv.param("waypoints_frame",    waypoints_frame,    odom_frame);
+  n_priv.param("rviz_frame",         rviz_frame,         odom_frame);
   n_priv.param("include_robot_path", include_robot_path, default_include_robot_path);
-  n_priv.param("move_base_name", move_base_name, default_move_base_name);
+  n_priv.param("move_base_name",     move_base_name,     default_move_base_name);
   
   // Check parameter server to override defaults.
   XmlRpc::XmlRpcValue v;
@@ -409,10 +413,10 @@ int main(int argc, char** argv){
   ros::init(argc, argv, "waypoint_follower");
   ros::NodeHandle n;
   ros::NodeHandle n_priv("~");
-  ac = new MoveBaseClient(move_base_name, true);
   loadSubs(n);
   loadPubs(n);
   loadParams(n_priv);
+  ac = new MoveBaseClient(move_base_name, true);
    
   if( waypoint_array.waypoints.size() > 0 ) {
     while(!ac->waitForServer(ros::Duration(5.0))){

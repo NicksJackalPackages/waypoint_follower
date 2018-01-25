@@ -14,6 +14,7 @@
   <node ns="jackal0" pkg="waypoint_follower" type="waypoint_follower_node" name="waypoint_follower" output="screen">
     <param name="odom_frame"         value="jackal0/odom"/>
     <param name="baselink_frame"     value="jackal0/base_link"/>
+    <param name="rviz_frame"         value="map"/>
     <param name="include_robot_path" value="true"/>
   </node>
   
