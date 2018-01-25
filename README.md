@@ -16,7 +16,7 @@ Each waypoint can have a different frame, but must have a transformation to the 
 
 `add_waypoint` ([`geometry_msgs/PoseStamped`](http://docs.ros.org/api/geometry_msgs/html/msg/PoseStamped.html))
 
-Adds a single waypoint to the waypoint list. Designed for the output of RVIZ '2D Nav Goal'. Assumes a frame of `~odom_frame`.
+Adds a single waypoint to the waypoint list. Designed for the output of RVIZ '2D Nav Goal'. Uses a frame of `~rviz_frame`.
 
 `set_waypoints` ([`waypoint_follower_msgs/WaypointArray`](waypoint_follower_msgs/msg/WaypointArray.msg))
 
@@ -38,7 +38,7 @@ Reports when a waypoint has been reached.
 
 `waypoint_paths` ([`nav_msgs/Path`](http://docs.ros.org/api/nav_msgs/html/msg/Path.html))
 
-The incomplete waypoints. Published whenever the waypoint list is updated.
+The incomplete waypoints. Published whenever the waypoint list is updated. Uses the frame `~rviz_frame`.
 
 #### 1.1.3 Parameters
 
@@ -54,17 +54,21 @@ The `base_link` frame of the robot. This is only used if `include_robot_path` is
 
 The `odom` frame of the robot.
 
-`~include_robot_path` (`bool`, default: `false`)
+`~rviz_frame` (`string`, default: `~odom_frame`)
 
-Whether to display the path from the robots `base_link` to the first waypoint. 
+The frame of the subscribed `add_waypoint` topic and published `waypoint_paths` topic.
 
 `~waypoints` (`array`, default: `[]`)
 
 Sets waypoints. In the form position(x, y, z) followed by orientation (x, y, z, w).
 
-`~waypoints_frame` (`string`, default: `odom_frame`)
+`~waypoints_frame` (`string`, default: `~odom_frame`)
 
-The frame of waypoints given by the parameter `waypoints`.  Also specifies the frame of the published topic `waypoint_paths`.
+The frame of waypoints given by the parameter `waypoints`.
+
+`~include_robot_path` (`bool`, default: `false`)
+
+Whether to display the path from the robots `base_link` to the first waypoint. 
 
 ## 2. TO-DO
 - Option to sit (or spin) at waypoint until an external succeed message is also sent
