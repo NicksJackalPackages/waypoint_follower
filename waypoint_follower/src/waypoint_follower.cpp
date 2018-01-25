@@ -42,6 +42,9 @@ string rviz_frame;                     //frame_id of added/displayed points in R
 string move_base_name;                 //"move_base"
 bool include_robot_path;
 
+geometry_msgs::PoseStamped start_pose;
+
+
 //ros::Publisher  pub_waypoint_poses;
 ros::Publisher  pub_waypoint_paths;
 ros::Publisher  pub_completed_paths;
@@ -115,11 +118,15 @@ bool updateWaypoints( WaypointStamped ws, bool add_if_new ){
   int index = getWaypointByID( ws.waypoint.id, &w );
   if( index == -1 ){
     if( add_if_new ){
-      /*if( ws.header.frame_id != odom_frame ){
-        convertPoseFrame( ws.waypoint.pose, ws.header.frame_id, odom_frame );
-        ws.header.frame_id = odom_frame;
-      }*/
       waypoint_array.waypoints.push_back(ws);
+      if( no_goal_atm ){
+        geometry_msgs::PoseStamped p;
+        p.header.frame_id    = rviz_frame;
+        p.header.stamp       = ros::Time::now();
+        p.pose.orientation.w = 1;
+        convertPoseFrame( p.pose, baselink_frame, rviz_frame );
+        start_pose = p;
+      }
       return no_goal_atm;
     } else {
       return false;
@@ -165,7 +172,6 @@ bool updateWaypoints( WaypointStamped ws, bool add_if_new ){
  * Publisher functions
  **************************************************/
  
- 
 // Publishes completed tasks for visualisation in RVIZ. Uses the rviz_frame. 
 // The first point in the path can be the robots base_link.
 void publishCompletedPaths(){
@@ -176,15 +182,9 @@ void publishCompletedPaths(){
   vector<geometry_msgs::PoseStamped> vec;
   geometry_msgs::PoseStamped ps;
   // Add robot start position.
-  /*if( include_robot_path ){
-    geometry_msgs::Pose pose;
-    pose.orientation.w = 1;
-    convertPoseFrame( pose, baselink_frame, rviz_frame );
-    ps.header.stamp = ros::Time::now();
-    ps.header.frame_id = waypoints_frame;
-    ps.pose = pose;
-    vec.push_back( ps );
-  }*/
+  if( include_robot_path ){
+    vec.push_back( start_pose );
+  }
   // Add waypoints.
   int end = current_waypoint_index;
   if( end < 0 ) end = waypoint_array.waypoints.size();
@@ -192,7 +192,9 @@ void publishCompletedPaths(){
     WaypointStamped ws = waypoint_array.waypoints.at(i);
     ps.header = ws.header;
     ps.pose   = ws.waypoint.pose;
-    convertPoseFrame( ps.pose, ws.header.frame_id, rviz_frame );
+    if( ws.header.frame_id != rviz_frame ){
+      convertPoseFrame( ps.pose, ws.header.frame_id, rviz_frame );
+    }
     ps.header.frame_id = rviz_frame;
     vec.push_back( ps );
   }
@@ -225,7 +227,9 @@ void publishWaypointPaths(){
     WaypointStamped ws = waypoint_array.waypoints.at(i);
     ps.header = ws.header;
     ps.pose   = ws.waypoint.pose;
-    convertPoseFrame( ps.pose, ws.header.frame_id, rviz_frame );
+    if( ws.header.frame_id != rviz_frame ){
+      convertPoseFrame( ps.pose, ws.header.frame_id, rviz_frame );
+    }
     ps.header.frame_id = rviz_frame;
     vec.push_back( ps );
   }
@@ -234,27 +238,6 @@ void publishWaypointPaths(){
   publishCompletedPaths();
 }
 
-
-// Publishes the poses of the waypoints in the waypoint array. This is for 
-// visualising in RVIZ.
-/*void publishWaypointPoses(){
-  geometry_msgs::PoseArray pose_array;
-  pose_array.header.seq      = 0;
-  pose_array.header.stamp    = ros::Time::now();
-  pose_array.header.frame_id = odom_frame;
-  vector<geometry_msgs::Pose> vec;
-  for( int i=current_waypoint_index; i<waypoint_array.waypoints.size(); i++ ){
-    if( i < 0 ) continue;
-    geometry_msgs::Pose p = waypoint_array.waypoints.at(i).waypoint.pose;
-    if( waypoint_array.waypoints.at(i).header.frame_id != odom_frame ){
-      convertPoseFrame( p, waypoint_array.waypoints.at(i).header.frame_id, odom_frame);
-    }
-    vec.push_back( p );
-  }
-  pose_array.poses = vec;
-  pub_waypoint_poses.publish(pose_array);
-} */
- 
 // Send a goal to move_base.
 void sendGoalToMoveBase(WaypointStamped* ws){
   //cout << "sending to move base!: " << odom_frame << endl;
