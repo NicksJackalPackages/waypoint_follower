@@ -20,7 +20,6 @@
     <param name="odom_frame"         value="jackal0/odom"/>
     <param name="baselink_frame"     value="jackal0/base_link"/>
     <param name="rviz_frame"         value="map"/>
-    <param name="include_robot_path" value="true"/>
   </node>
                                        
   <!-- Display on RVIZ. -->

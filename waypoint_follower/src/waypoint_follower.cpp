@@ -354,15 +354,14 @@ void callbackMoveBaseResult(const move_base_msgs::MoveBaseActionResult::ConstPtr
  
 void loadSubs(ros::NodeHandle n){
   sub_add_waypoint     = n.subscribe("add_waypoint",      100, callbackAddWaypoint);   
-  sub_move_base_result = n.subscribe("move_base/result",  100, callbackMoveBaseResult);  
-  sub_obs_waypoint     = n.subscribe("observed_waypoints",100, callbackObservedWaypoints);  
   sub_set_waypoints    = n.subscribe("set_waypoints",     100, callbackSetWaypoints);
   sub_upd_waypoints    = n.subscribe("update_waypoints",  100, callbackUpdateWaypoints);                                       
+  sub_obs_waypoint     = n.subscribe("observed_waypoints",100, callbackObservedWaypoints);  
+  sub_move_base_result = n.subscribe("move_base/result",  100, callbackMoveBaseResult);  
 }
 
 void loadPubs(ros::NodeHandle n){
-  //pub_waypoint_poses = n.advertise<geometry_msgs::PoseArray>("waypoint_poses", 100);
-  pub_waypoint_paths = n.advertise<nav_msgs::Path>("waypoint_paths", 100);
+  pub_waypoint_paths  = n.advertise<nav_msgs::Path>("waypoint_paths", 100);
   pub_completed_paths = n.advertise<nav_msgs::Path>("completed_paths", 100);
 }
 
@@ -447,16 +446,8 @@ int main(int argc, char** argv){
     startWaypointFollowing();
     publishWaypointPaths();
   }
-  cout << "Starting!" << endl;
   
   ros::spin();
-  
-  /*ros::Rate r(5);
-  while( ros::ok() ){
-    publishWaypointPaths();
-    ros::spinOnce();
-    r.sleep();
-  }*/
   
   delete ac;
   return 0;

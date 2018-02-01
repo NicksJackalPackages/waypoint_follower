@@ -1,5 +1,7 @@
 <?xml version="1.0"?>
-<!-- In RVIZ, use the '2D Nav Goal' to provide waypoints. -->
+<!-- Launch with:
+       roslaunch waypoint_follower_tutorials example1.launch
+     In RVIZ, use the '2D Nav Goal' to provide waypoints. -->
 <launch>
 
   <!-- Launch waypoint following. -->

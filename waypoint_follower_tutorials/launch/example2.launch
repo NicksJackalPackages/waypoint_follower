@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <!-- Creates a Jackal in Gazebo, then sends it to user specified waypoints using
      RVIZ.
-     Before doing this, make sure you have installed 'my_jackal_gazebo' and can 
-     successfully launch 'one_jackal'. 
+     Before doing this, make sure you have installed the multi-jackal package
+     and can successfully launch 'one_jackal'. 
      It's possible that RVIZ or Gazebo will fail to launch when using slow 
      computers. -->
 <launch>
@@ -15,7 +15,6 @@
     <param name="odom_frame"         value="jackal0/odom"/>
     <param name="baselink_frame"     value="jackal0/base_link"/>
     <param name="rviz_frame"         value="map"/>
-    <param name="include_robot_path" value="true"/>
   </node>
   
   <!-- Display on RVIZ. This will display where the Jackal thinks it is. To see

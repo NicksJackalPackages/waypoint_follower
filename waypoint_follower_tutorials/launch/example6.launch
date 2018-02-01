@@ -16,15 +16,11 @@
   <include file="$(find my_jackal_base)/launch/jackal_base.launch">
     <arg name="ns"            value="jackal0"/>
 	  <arg name="use_move_base" value="true"/>
-    <arg name="tagged"        value="true"/>
-    <arg name="tag_num"       value="0"/>
   </include>
   <include file="$(find my_jackal_base)/launch/jackal_base.launch">
     <arg name="ns"            value="jackal1"/>
     <arg name="x"             value="2"/>
     <arg name="use_move_base" value="true"/>
-    <arg name="tagged"        value="true"/>
-    <arg name="tag_num"       value="1"/>
   </include>
   <include file="$(find my_jackal_base)/launch/jackal_base.launch">
     <arg name="ns"            value="jackal2"/>
