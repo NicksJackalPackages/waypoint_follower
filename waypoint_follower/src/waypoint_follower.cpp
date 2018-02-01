@@ -273,8 +273,9 @@ void startWaypointFollowing() {
  /**************************************************
  * Subscriber functions
  **************************************************/
-// Designed for input from RVIZ. Assumes values in the odom frame.
+// Designed for input from RVIZ.
 void callbackAddWaypoint(const geometry_msgs::PoseStamped::ConstPtr& msg) {
+  cout << "Received a waypoint!" << endl;
   WaypointStamped ws;
   ws.header.stamp    = ros::Time::now();
   ws.header.frame_id = rviz_frame;
