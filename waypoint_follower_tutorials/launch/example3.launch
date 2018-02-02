@@ -6,7 +6,7 @@
 
   <!-- Creates a Jackal in Gazebo, as well as all the necessary control and
        navigation. Default namespace is 'jackal0'. -->
-  <include file="$(find my_jackal_gazebo)/launch/one_jackal.launch"/>
+  <include file="$(find multi_jackal_gazebo)/launch/one_jackal.launch"/>
   
   <!-- Launch waypoint following. -->
   <node ns="jackal0" pkg="waypoint_follower" type="waypoint_follower_node" name="waypoint_follower" output="screen">

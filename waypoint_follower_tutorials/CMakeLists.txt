@@ -10,7 +10,7 @@ project(waypoint_follower_tutorials)
 find_package(catkin REQUIRED COMPONENTS
   waypoint_follower
   waypoint_follower_msgs
-  my_jackal_gazebo
+  multi_jackal_gazebo
 )
 
 ## System dependencies are found with CMake's conventions

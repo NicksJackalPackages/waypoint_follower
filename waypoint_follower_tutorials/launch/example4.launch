@@ -3,7 +3,7 @@
 <launch>
 
   <!-- Creates a Jackal in Gazebo. -->
-  <include file="$(find my_jackal_gazebo)/launch/one_jackal.launch"/>
+  <include file="$(find multi_jackal_gazebo)/launch/one_jackal.launch"/>
   
   <!-- Launch waypoint following. Each waypoint is position (x, y, z) followed 
        by orientation (x, y, z, w). Whether orientation is actually used or not
