@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+
+<launch>
+
+  <!-- Display on RVIZ. -->
+  <group if="true">
+    <node name="rviz" pkg="rviz" type="rviz">
+      <remap from="move_base_simple/goal" to="/add_waypoint"/>
+    </node>
+  </group>  
+  
+</launch>
