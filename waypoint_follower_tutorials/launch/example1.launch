@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
-<!-- Launch with:
-       roslaunch waypoint_follower_tutorials example1.launch
+<!-- This is an example of adding waypoints in the odom frame using RVIZ.
+
      In RVIZ, use the '2D Nav Goal' to provide waypoints. -->
 <launch>
 

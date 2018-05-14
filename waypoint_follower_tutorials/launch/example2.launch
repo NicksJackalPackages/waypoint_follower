@@ -4,7 +4,11 @@
      Before doing this, make sure you have installed the multi-jackal package
      and can successfully launch 'one_jackal'. 
      It's possible that RVIZ or Gazebo will fail to launch when using slow 
-     computers. -->
+     computers. 
+     
+     We'll send waypoints from RVIZ in the map frame. These waypoints will be
+     stored in the map frame until needing to be executed, where they will be
+     converted to the odom frame for move_base.-->
 <launch>
   <!-- Creates a Jackal in Gazebo, as well as all the necessary control and
        navigation. Default namespace is 'jackal0'. -->
