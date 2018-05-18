@@ -17,20 +17,7 @@
 #include <robot_localization/navsat_conversions.h>
 
 /* Written by Nick Sullivan, The University of Adelaide. 
-   This file takes a series of waypoints and periodically sends them to 
-   move_base. The waypoints can come from a launch file, or dynamically added.
-   Also supports feedback i.e. if the waypoint is observed in a new position,
-   the waypoint is updated and re-sent to move_base. 
-   The inputs can come from three sources, from a launch file, from RVIZ, or 
-   from any node producing a WaypointStamped or WaypointArray message. For the 
-   first two options, the frames they are relative to must be given via 
-   parameters (launch_frame, rviz_frame). For the last, the frame will be
-   specified in the header. Any frame can be used, provided there is a 
-   transformation from it to the odom_frame (which move_base uses) and the
-   path_vis_frame (for path visualisation).
-   
-   The waypoints are stored in the frame that they are given, and converted
-   as required. The exception to this is GPS points, which are stored as 
+
 */
 
 using std::vector;
@@ -53,8 +40,6 @@ string map_frame;                      //"map"
 string odom_frame;                     //"name_space/odom"
 string baselink_frame;                 //"name_space/base_link"
 string launch_frame;				           //frame_id of launch file waypoints
-string rviz_frame;                     //frame_id of waypoints added from RVIZ
-string path_vis_frame;                 //desired frame_id of path visualisation
 bool include_start_pose;               //include the start pose in path visualisation               
 bool enabled;
 
@@ -154,8 +139,7 @@ bool lookupTransform(TransformStamped &output, string frame1, string frame2, ros
  * Publisher functions
  **************************************************/
  
-// Publishes a path message for visualisation in RVIZ. Uses the rviz_frame. 
-// The first point in the path can be the robots base_link.
+
 void publishWaypointPaths(){
   //cout << "Publishing waypoint paths!" << endl;
   nav_msgs::Path p;
@@ -170,17 +154,17 @@ void publishWaypointPaths(){
     pose.orientation.w = 1;
     convertPoseFrame( pose, baselink_frame, map_frame );
     ps.header.stamp = ros::Time::now();
-    ps.header.frame_id = path_vis_frame;
+    ps.header.frame_id = baselink_frame;
     ps.pose = pose;
     vec.push_back( ps );
   }
   // Add waypoints.
   for( int i=current_waypoint_index; i<waypoint_array.waypoints.size(); i++ ){
     if( i < 0 ) continue;
-    WaypointStamped ws = waypoint_array.waypoints.at(i);
+    PoseStamped ws = waypoint_array.waypoints.at(i);
     ps.header = ws.header;
-    ps.pose   = ws.waypoint.pose;
-    if( ws.header.frame_id != rviz_frame ){
+    ps.pose   = ws.pose;
+    if( ws.header.frame_id != map_frame ){
       convertPoseFrame( ps.pose, ws.header.frame_id, map_frame );
     }
     ps.header.frame_id = map_frame;
@@ -222,12 +206,11 @@ void loop(){
   
   // Grab the waypoint location.
   cout << "current_waypoint_index: " << current_waypoint_index << endl;
-  WaypointStamped wps = waypoint_array.waypoints[current_waypoint_index];
+  PoseStamped ps = waypoint_array.waypoints[current_waypoint_index];
   // Calculate the distance from our location to our target location.
   cout << "Getting destination waypoint. " << endl;
-  Waypoint wp = wps.waypoint;
-  wp_x = wp.pose.position.x;
-  wp_y = wp.pose.position.y;
+  wp_x = ps.pose.position.x;
+  wp_y = ps.pose.position.y;
   dx   = wp_x - x;
   dy   = wp_y - y;
   wp_ang = atan2( dy, dx );
@@ -244,8 +227,8 @@ void loop(){
   // Produce a command velocity.
   double x_vel, yaw_vel;
   x_vel = 0;
-  if( dist > 1 ) {
-    x_vel = 0.5;
+  if( dist > 0.5 ) {
+    x_vel = 1;
   } else {
     current_waypoint_index++;
     if( current_waypoint_index >= waypoint_array.waypoints.size() ){
@@ -306,8 +289,6 @@ void loadParams(ros::NodeHandle n_priv){
   n_priv.param("map_frame",          map_frame,          default_map_frame);
   n_priv.param("odom_frame",         odom_frame,         default_odom_frame);
   n_priv.param("launch_frame",       launch_frame,       odom_frame);
-  n_priv.param("rviz_frame",         rviz_frame,         odom_frame);
-  n_priv.param("path_vis_frame",     path_vis_frame,     odom_frame);
   n_priv.param("include_start_pose", include_start_pose, default_include_start_pose);
   
   // Check parameter server to override defaults.
@@ -329,26 +310,19 @@ void loadParams(ros::NodeHandle n_priv){
   }
   
   // Convert waypoint values into waypoints.
-  if( waypoint_values.size() % 7 != 0 ){
+  if( waypoint_values.size() % 2 != 0 ){
     cout << "INCORRECT NUMBER OF WAYPOINT VALUES" << endl;
     return;
   }
-  for( int i=0; i<waypoint_values.size(); i+=7 ) {
-    WaypointStamped ws;
-    ws.header.seq = 0;
-    ws.header.stamp = ros::Time::now();
-    ws.header.frame_id = launch_frame;
-    ws.waypoint.type = 7;
-    ws.waypoint.id = id_counter++;
-    ws.waypoint.completed = false;
-    ws.waypoint.pose.position.x = waypoint_values[i];
-    ws.waypoint.pose.position.y = waypoint_values[i+1];
-    ws.waypoint.pose.position.z = waypoint_values[i+2];
-    ws.waypoint.pose.orientation.x = waypoint_values[i+3];
-    ws.waypoint.pose.orientation.y = waypoint_values[i+4];
-    ws.waypoint.pose.orientation.z = waypoint_values[i+5];
-    ws.waypoint.pose.orientation.w = waypoint_values[i+6];
-    waypoint_array.waypoints.push_back(ws);
+  for( int i=0; i<waypoint_values.size(); i+=2 ) {
+    PoseStamped ps;
+    ps.header.seq      = 0;
+    ps.header.stamp    = ros::Time::now();
+    ps.header.frame_id = launch_frame;
+    ps.pose.position.x    = waypoint_values[i];
+    ps.pose.position.y    = waypoint_values[i+1];
+    ps.pose.orientation.w = 1;
+    waypoint_array.waypoints.push_back(ps);
   }
   
   // Get GPS locations.
@@ -375,23 +349,20 @@ void loadParams(ros::NodeHandle n_priv){
   cout << "NUMBER OF GPS WAYPOINTS: " << gps_values.size()/2 << endl;
   for( int i=0; i<gps_values.size(); i+=2 ) {
     cout << "FIRST GPS PAIR LOADED" << endl;
-    WaypointStamped ws;
-    ws.waypoint.type = 7;
-    ws.waypoint.id = id_counter++;
-    ws.waypoint.completed = false;
-    double lati = gps_values[i];
+    PoseStamped ws;
+    double lati  = gps_values[i];
     double longi = gps_values[i+1];
     PointStamped ps = convertLatLongToUTM(lati, longi);
     convertUTMtoMap( ps );
     
     ws.header = ps.header;
-    ws.waypoint.pose.position.x = ps.point.x;
-    ws.waypoint.pose.position.y = ps.point.y;
-    ws.waypoint.pose.position.z = ps.point.z;
-    ws.waypoint.pose.orientation.x = 0;
-    ws.waypoint.pose.orientation.y = 0;
-    ws.waypoint.pose.orientation.z = 0;
-    ws.waypoint.pose.orientation.w = 1;
+    ws.pose.position.x = ps.point.x;
+    ws.pose.position.y = ps.point.y;
+    ws.pose.position.z = ps.point.z;
+    ws.pose.orientation.x = 0;
+    ws.pose.orientation.y = 0;
+    ws.pose.orientation.z = 0;
+    ws.pose.orientation.w = 1;
     waypoint_array.waypoints.push_back(ws);
   }
 }
