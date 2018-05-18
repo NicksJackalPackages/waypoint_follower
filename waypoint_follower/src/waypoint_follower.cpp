@@ -290,6 +290,8 @@ void publishWaypointPaths(){
 void sendGoalToMoveBase(WaypointStamped* ws){
   geometry_msgs::Pose p = ws->waypoint.pose;
   convertPoseFrame( p, ws->header.frame_id, odom_frame );
+  p.position.z = 0;
+  //p.orientation.w = 1;
   move_base_msgs::MoveBaseGoal goal;
   goal.target_pose.header.frame_id = odom_frame;
   goal.target_pose.header.stamp    = ros::Time::now();
@@ -302,6 +304,8 @@ void sendGoalToMoveBase(WaypointStamped* ws){
   cout << "Converted to" << endl;
   cout << " - frame: " << odom_frame << endl;
   cout << " - xyz: (" << p.position.x << " , " << p.position.y << " , " << p.position.z << ")" << endl; 
+  cout << " - q: (" << p.orientation.x << " , " << p.orientation.y << " , " << p.orientation.z << " , " << p.orientation.w << ")" << endl;
+
 }
  
 // Picks the first waypoint that is not completed, and sends that to move base.
