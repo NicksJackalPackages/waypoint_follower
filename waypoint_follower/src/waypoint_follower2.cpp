@@ -35,6 +35,7 @@ using waypoint_follower_msgs::WaypointArray;
 WaypointArray waypoint_array;          //list of waypoints to complete
 int current_waypoint_index = -1;       //the index in waypoint_array
 int id_counter = 0;                    //for generating ID's
+double lin_vel;                        //forward speed
 string name_space;                     //prestring for frame ID's
 string map_frame;                      //"map"
 string odom_frame;                     //"name_space/odom"
@@ -227,7 +228,7 @@ void loop(){
   double x_vel, yaw_vel;
   x_vel = 0;
   if( dist > 0.5 ) {
-    x_vel = 1;
+    x_vel = lin_vel;
   } else {
     current_waypoint_index++;
     if( current_waypoint_index >= waypoint_array.waypoints.size() ){
@@ -284,6 +285,7 @@ void loadParams(ros::NodeHandle n_priv){
   string default_baselink_frame  = "base_link";
   string default_map_frame       = "map";
   string default_odom_frame      = "odom";
+  double default_lin_vel         = 0.5;
   bool default_include_start_pose = true;
 
   n_priv.param("baselink_frame",     baselink_frame,     default_baselink_frame);
@@ -291,7 +293,8 @@ void loadParams(ros::NodeHandle n_priv){
   n_priv.param("odom_frame",         odom_frame,         default_odom_frame);
   n_priv.param("launch_frame",       launch_frame,       odom_frame);
   n_priv.param("include_start_pose", include_start_pose, default_include_start_pose);
-
+  n_priv.param("lin_vel",            lin_vel,            default_lin_vel);
+  
   // Get waypoint order.
   XmlRpc::XmlRpcValue v;
   if( n_priv.getParam("waypoint_order", v) ){
@@ -382,14 +385,14 @@ void loadParams(ros::NodeHandle n_priv){
     return;
   }
   // Fill in default order (starts with 1).
-  if( waypoint_order.empty() ){
+  if( gps_waypoint_order.empty() ){
     while( gps_waypoint_order.size() < gps_values.size()/2 ){
       gps_waypoint_order.push_back( gps_waypoint_order.size()+1 );
     }
   }
   cout << "NUMBER OF GPS WAYPOINTS: " << gps_values.size()/2 << endl;
   for( int i=0; i<gps_waypoint_order.size(); i++ ) {
-    int j = (waypoint_order[i]-1)*2;
+    int j = (gps_waypoint_order[i]-1)*2;
     cout << "FIRST GPS PAIR LOADED" << endl;
     PoseStamped ws;
     double lati  = gps_values[j];

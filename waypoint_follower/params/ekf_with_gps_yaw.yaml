@@ -1,4 +1,4 @@
-frequency: 30
+frequency: 50
 two_d_mode: true
 odom0: jackal_velocity_controller/odom
 odom0_differential: false
@@ -9,11 +9,11 @@ odom0_config: [false, false, false,
                false, false, false]
 
 imu0: imu/data
-imu0_differential: false
+imu0_differential: true
 imu0_config: [false, false, false,
+              false, false,  true,
               false, false, false,
-              false, false, false,
-               true,  true,  true,
+              false, false,  true,
               false, false, false]
 
 odom1: odometry/gps_with_yaw
