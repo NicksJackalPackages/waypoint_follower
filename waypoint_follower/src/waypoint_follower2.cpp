@@ -36,6 +36,8 @@ WaypointArray waypoint_array;          //list of waypoints to complete
 int current_waypoint_index = -1;       //the index in waypoint_array
 int id_counter = 0;                    //for generating ID's
 double lin_vel;                        //forward speed
+double ang_vel;                        //rotate speed
+double start_delay;                    //time to wait before going to waypoints
 string name_space;                     //prestring for frame ID's
 string map_frame;                      //"map"
 string odom_frame;                     //"name_space/odom"
@@ -202,6 +204,7 @@ void loop(){
   tf2::Quaternion quat(qx, qy, qz, qw);
   tf2::Matrix3x3 mat(quat);
   mat.getRPY(roll, pitch, yaw);
+  cout << "My location: ( " << x << " , " << y << " )" << endl;
   //cout << "x, y, yaw: (" << x << " , " << y << " , " << yaw << ")" << endl;
 
   // Grab the waypoint location.
@@ -214,6 +217,7 @@ void loop(){
   dx   = wp_x - x;
   dy   = wp_y - y;
   wp_ang = atan2( dy, dx );
+  cout << "Destination: ( " << wp_x << " , " << wp_y << " )" << endl;
   //cout << "x, y, yaw: (" << wp_x << " , " << wp_y <<  " , " << wp_ang << ")" << endl;
 
   // Convert from x-y to dist-ang.
@@ -222,26 +226,26 @@ void loop(){
   if( ang >  3.1415 ) ang = ang - 2*3.1415;
   if( ang < -3.1415 ) ang = ang + 2*3.1415;
   //cout << "dx, dy: (" << dx << " , " << dy << ")" << endl;
-  //cout << "dist, ang: (" << dist << " , " << ang << ")" << endl;
+  cout << "Target dist, ang: (" << dist << " , " << ang*180/3.1415 << ")" << endl;
 
   // Produce a command velocity.
   double x_vel, yaw_vel;
-  x_vel = 0;
   if( dist > 0.5 ) {
     x_vel = lin_vel;
   } else {
     current_waypoint_index++;
     if( current_waypoint_index >= waypoint_array.waypoints.size() ){
+      x_vel   = 0;
       enabled = false;
       cout << "WAYPOINTS DONE" << endl;
     }
   }
   yaw_vel = 0;
   double ang_abs = sqrt( ang*ang );
-  if( ang_abs > 0.5 ) {
-    yaw_vel = 2;
+  if( ang_abs > 0.5 ) {                //yaw speed cap
+    yaw_vel = ang_vel;
   } else {
-    yaw_vel = 4.0*ang_abs;
+    yaw_vel = ang_vel*ang_abs / 0.5;   //linear
   }
   if( ang < 0 ){
     yaw_vel = -yaw_vel;
@@ -282,11 +286,13 @@ void loadParams(ros::NodeHandle n_priv){
   // Set default parameters.
   double default_waypoint_values[] = {};
   double default_gps_values[]      = {};
-  string default_baselink_frame  = "base_link";
-  string default_map_frame       = "map";
-  string default_odom_frame      = "odom";
-  double default_lin_vel         = 0.5;
-  bool default_include_start_pose = true;
+  string default_baselink_frame    = "base_link";
+  string default_map_frame         = "map";
+  string default_odom_frame        = "odom";
+  double default_lin_vel           = 0.5;
+  double default_ang_vel           = 0.5;
+  double default_start_delay       = 0;
+  bool default_include_start_pose  = true;
 
   n_priv.param("baselink_frame",     baselink_frame,     default_baselink_frame);
   n_priv.param("map_frame",          map_frame,          default_map_frame);
@@ -294,7 +300,13 @@ void loadParams(ros::NodeHandle n_priv){
   n_priv.param("launch_frame",       launch_frame,       odom_frame);
   n_priv.param("include_start_pose", include_start_pose, default_include_start_pose);
   n_priv.param("lin_vel",            lin_vel,            default_lin_vel);
-  
+  n_priv.param("ang_vel",            ang_vel,            default_ang_vel);
+  n_priv.param("start_delay",        start_delay,        default_start_delay);
+
+  if( start_delay > 0 ){
+    ros::Duration(start_delay).sleep();
+  }
+
   // Get waypoint order.
   XmlRpc::XmlRpcValue v;
   if( n_priv.getParam("waypoint_order", v) ){
