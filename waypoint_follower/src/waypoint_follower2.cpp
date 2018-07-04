@@ -5,8 +5,6 @@
 #include "geometry_msgs/PoseArray.h"
 #include "geometry_msgs/TransformStamped.h"
 #include "nav_msgs/Path.h"
-//#include "waypoint_follower_msgs/Waypoint.h"
-//#include "waypoint_follower_msgs/WaypointStamped.h"
 #include "waypoint_follower_msgs/WaypointArray.h"
 #include <move_base_msgs/MoveBaseAction.h>
 #include <actionlib/client/simple_action_client.h>
