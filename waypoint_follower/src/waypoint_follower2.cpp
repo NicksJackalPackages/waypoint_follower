@@ -36,6 +36,7 @@ int id_counter = 0;                    //for generating ID's
 double lin_vel;                        //forward speed
 double ang_vel;                        //rotate speed
 double start_delay;                    //time to wait before going to waypoints
+double dist_req;                       //distance required to each waypoint for success
 string name_space;                     //prestring for frame ID's
 string map_frame;                      //"map"
 string odom_frame;                     //"name_space/odom"
@@ -49,6 +50,7 @@ PoseStamped start_pose;
 ros::Publisher pub_cmd_vel;
 ros::Publisher pub_waypoint_paths;
 //ros::Publisher pub_completed_paths;
+ros::Subscriber sub_set_waypoints;
 
 tf2_ros::Buffer tfbuffer;            //for transformation lookup
 
@@ -98,8 +100,8 @@ bool convertUTMtoMap( geometry_msgs::PointStamped &p ){
 bool convertPoseFrame( geometry_msgs::Pose &p, string frame_in, string frame_out ){
   try {
     tf::TransformListener listener;
-    //cout << "Time is: " << ros::Time::now() << endl;
-    //cout << "Looking up transform from " << frame_in << " to " << frame_out << endl;
+    cout << "Time is: " << ros::Time::now() << endl;
+    cout << "Looking up transform from " << frame_in << " to " << frame_out << endl;
     geometry_msgs::PoseStamped old_pose, new_pose;
     ros::Time now            = ros::Time(0);
     old_pose.pose            = p;
@@ -178,6 +180,13 @@ void publishWaypointPaths(){
  * Subscriber functions
  **************************************************/
 
+void callbackSetWaypoints(const WaypointArray::ConstPtr& msg){
+  cout << "Received waypoints!" << endl;
+  waypoint_array = *msg;
+  if (current_waypoint_index < 1) {
+    enabled = true;
+  }
+}
 
 /**************************************************
  * Looping
@@ -190,7 +199,7 @@ void loop(){
   double x, y, wp_x, wp_y, wp_ang, qx, qy, qz, qw, roll, pitch, yaw, dx, dy, dist, ang;
 
   // Grab our current location.
-  //cout << "Getting current location. " << endl;
+  cout << "Getting current location. " << endl;
   TransformStamped ts_map2base;
   if ( !lookupTransform(ts_map2base, map_frame, baselink_frame, ros::Time(0)) ) return;
   x  = ts_map2base.transform.translation.x;
@@ -228,9 +237,12 @@ void loop(){
 
   // Produce a command velocity.
   double x_vel, yaw_vel;
-  if( dist > 0.5 ) {
+  if( dist > dist_req ) {
     x_vel = lin_vel;
   } else {
+    cout << " Completed a waypoint. Current index is " << current_waypoint_index << endl;
+    cout << " Total waypoints are: " << waypoint_array.waypoints.size() << endl;
+    //ros::Duration(15).sleep();
     current_waypoint_index++;
     if( current_waypoint_index >= waypoint_array.waypoints.size() ){
       x_vel   = 0;
@@ -261,7 +273,7 @@ void loop(){
 
 void loadSubs(ros::NodeHandle n){
   //sub_add_waypoint     = n.subscribe("add_waypoint",      100, callbackAddWaypoint);
-  //sub_set_waypoints    = n.subscribe("set_waypoints",     100, callbackSetWaypoints);
+  sub_set_waypoints    = n.subscribe("set_waypoints",     100, callbackSetWaypoints);
   //sub_upd_waypoints    = n.subscribe("update_waypoints",  100, callbackUpdateWaypoints);
   //sub_obs_waypoint     = n.subscribe("observed_waypoints",100, callbackObservedWaypoints);
   //sub_move_base_result = n.subscribe("move_base/result",  100, callbackMoveBaseResult);
@@ -280,7 +292,7 @@ void loadParams(ros::NodeHandle n_priv){
   vector<double> gps_values;         //position (lat, long)
   vector<int>    waypoint_order;     //indices of waypoint_values
   vector<int>    gps_waypoint_order; //indices of gps_values
-  enabled = true;
+  enabled = false;
   // Set default parameters.
   double default_waypoint_values[] = {};
   double default_gps_values[]      = {};
@@ -291,6 +303,7 @@ void loadParams(ros::NodeHandle n_priv){
   double default_ang_vel           = 0.5;
   double default_start_delay       = 0;
   bool default_include_start_pose  = true;
+  double default_dist_req          = 1;
 
   n_priv.param("baselink_frame",     baselink_frame,     default_baselink_frame);
   n_priv.param("map_frame",          map_frame,          default_map_frame);
@@ -300,6 +313,7 @@ void loadParams(ros::NodeHandle n_priv){
   n_priv.param("lin_vel",            lin_vel,            default_lin_vel);
   n_priv.param("ang_vel",            ang_vel,            default_ang_vel);
   n_priv.param("start_delay",        start_delay,        default_start_delay);
+  n_priv.param("dist_req",           dist_req,           default_dist_req);
 
   if( start_delay > 0 ){
     ros::Duration(start_delay).sleep();
@@ -358,6 +372,7 @@ void loadParams(ros::NodeHandle n_priv){
     ps.pose.orientation.w = 1;
     waypoint_array.waypoints.push_back(ps);
     cout << "wp: " << ps.pose.position.x << " , " << ps.pose.position.y << endl;
+    enabled = true;
   }
 
   // Get GPS order.
@@ -419,6 +434,7 @@ void loadParams(ros::NodeHandle n_priv){
     ws.pose.orientation.z = 0;
     ws.pose.orientation.w = 1;
     waypoint_array.waypoints.push_back(ws);
+    enabled = true;
   }
 }
 
@@ -444,3 +460,5 @@ int main(int argc, char** argv){
 
   return 0;
 };
+
+
