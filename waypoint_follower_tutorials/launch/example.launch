@@ -30,6 +30,8 @@
                                      -34.930020, 138.60010]</rosparam>
     <param name="odom_frame"         value="jackal0/odom"/>
     <param name="baselink_frame"     value="jackal0/base_link"/>
+    <param name="lin_vel"            value="0.5"/>
+    <param name="ang_vel"            value="1.5"/>
   </node>
                                        
   <!-- Display on RVIZ. -->
