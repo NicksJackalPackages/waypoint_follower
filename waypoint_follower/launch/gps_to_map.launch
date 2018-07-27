@@ -1,0 +1,82 @@
+<?xml version="1.0"?>
+
+
+<launch>
+  <!-- Convert navsat to odometry. -->
+  <group if="true">
+    <node pkg="robot_localization" type="navsat_transform_node" name="fix_to_gps" output="screen">
+      <param name="zero_altitude"                value="true"/>      <!--don't care about height-->
+      <param name="broadcast_utm_transform"      value="true"/>      <!--publish TF for conversion-->
+      <param name="publish_filtered_gps"         value="true"/>      <!--publish robot location as GPS-->
+      <param name="wait_for_datum"               value="true"/>      <!--use predetermined GPS origin-->
+      <param name="delay"                        value="5"/>         <!--wait for input map to base message.-->
+      <rosparam param="datum">[-34.915286473, 138.602571847, 0]</rosparam> <!-- UofA. -->
+    </node>
+  </group>
+
+  <!-- Create a singular localisation node. -->
+  <group if="false">
+    <node pkg="robot_localization" type="ekf_localization_node" name="singular_localization">
+      <rosparam param="odom0_config">[ true,  true, false,
+                                      false, false, false,
+                                      false, false, false,
+                                      false, false, false,
+                                      false, false, false]</rosparam>
+      <param name="odom0" value="odometry/gps"/>
+      <param name="frequency" value="1"/>
+      <param name="two_d_mode" value="true"/>
+      <param name="map_frame"       value="map"/>
+      <param name="odom_frame"      value="odom"/>
+      <param name="base_link_frame" value="base_link"/>
+      <param name="world_frame"     value="map"/>
+      <param name="publish_tf"      value="true"/>
+    </node>
+  </group>
+  
+  <!-- Publish a map to base_link message. -->
+  <node pkg="rostopic" type="rostopic" name="rostopic_maptobase" 
+        args="pub -r 10 -s /odometry/filtered nav_msgs/Odometry 
+              '{
+                header: {
+                         stamp: now, 
+                         frame_id: map
+                        },
+                child_frame_id: base_link,
+                pose: {
+                       pose: {
+                              position: {x: 0, y: 50}
+                             },
+                       covariance: [1,0,0,0,0,0,
+                                    0,1,0,0,0,0,
+                                    0,0,1,0,0,0,
+                                    0,0,0,1,0,0,
+                                    0,0,0,0,1,0,
+                                    0,0,0,0,0,1]
+                      }
+               }'"/>
+               
+  <!-- Publish an odom to base_link TF -->
+  <node pkg="tf" type="static_transform_publisher" name="static_odom_base_tf"
+        args="0 0 0 0 0 0 odom base_link 100"/>
+  <node pkg="tf" type="static_transform_publisher" name="static_map_odom_tf"
+        args="0 0 0 0 0 0 map odom 100"/> 
+             
+  <!-- Publish a GPS reading. The value in map coords is listed in the topic
+       /odometry/gps -->  
+  <node pkg="rostopic" type="rostopic" name="rostopic_gps" 
+        args="pub -r 10 -s /gps/fix sensor_msgs/NavSatFix 
+              '{
+                header: {
+                         stamp: now, 
+                         frame_id: base_link
+                        },
+                status: {service: 1},
+                latitude: -34.915633333,
+                longitude: 138.60273983,
+                position_covariance: [1,0,0,
+                                      0,1,0,
+                                      0,0,1],
+                position_covariance_type: 2
+               }'"/>
+  
+</launch>
