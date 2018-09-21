@@ -53,6 +53,7 @@ ros::Publisher pub_waypoint_paths;
 ros::Subscriber sub_set_waypoints;
 
 tf2_ros::Buffer tfbuffer;            //for transformation lookup
+tf::TransformListener* listener;
 
 /**************************************************
  * Helper functions
@@ -99,17 +100,18 @@ bool convertUTMtoMap( geometry_msgs::PointStamped &p ){
 // Returns whether it was successful.
 bool convertPoseFrame( geometry_msgs::Pose &p, string frame_in, string frame_out ){
   try {
-    tf::TransformListener listener;
+    
     cout << "Time is: " << ros::Time::now() << endl;
     cout << "Looking up transform from " << frame_in << " to " << frame_out << endl;
     geometry_msgs::PoseStamped old_pose, new_pose;
     ros::Time now            = ros::Time(0);
+    //ros::Time now            = ros::Time::now();
     old_pose.pose            = p;
     old_pose.header.frame_id = frame_in;
     old_pose.header.stamp    = now;
 
-    listener.waitForTransform(frame_in, frame_out, now, ros::Duration(20) );
-    listener.transformPose(frame_out, old_pose, new_pose);
+    listener->waitForTransform(frame_in, frame_out, now, ros::Duration(20) );
+    listener->transformPose(frame_out, old_pose, new_pose);
 
     p = new_pose.pose;
 
@@ -191,10 +193,12 @@ void callbackSetWaypoints(const WaypointArray::ConstPtr& msg){
 /**************************************************
  * Looping
  **************************************************/
-
+void publishTimerCallback(const ros::TimerEvent& e){
+    publishWaypointPaths();
+}
 // Called repeatedly until all waypoints are completed.
 void loop(){
-  publishWaypointPaths();
+  cout << "*******************" << endl;
   if( !enabled || current_waypoint_index < 0) return;
   double x, y, wp_x, wp_y, wp_ang, qx, qy, qz, qw, roll, pitch, yaw, dx, dy, dist, ang;
 
@@ -263,7 +267,7 @@ void loop(){
   Twist cmd_vel;
   cmd_vel.linear.x  = x_vel;
   cmd_vel.angular.z = yaw_vel;
-  //cout << "xlin, yawvel: (" << x_vel << " , " << yaw_vel << ")" << endl;
+  cout << "xlin, yawvel: (" << x_vel << " , " << yaw_vel << ")" << endl;
   pub_cmd_vel.publish(cmd_vel);
 }
 
@@ -447,13 +451,15 @@ int main(int argc, char** argv){
   loadPubs(n);
   loadParams(n_priv);
   tf2_ros::TransformListener tflistener(tfbuffer);   //must stay persistent
+  tf::TransformListener listen;
+  listener = &listen;
 
   current_waypoint_index = 0;
+  ros::Timer timer = n.createTimer(ros::Duration(1), publishTimerCallback);
 
   ros::Rate loop_rate(10);
   while( ros::ok() ){
     loop();
-
     ros::spinOnce();
     loop_rate.sleep();
   }
