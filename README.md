@@ -34,21 +34,29 @@ The `odom` frame of the robot.
 
 The `map` frame of the robot.
 
-`~waypoint_values` (`array`, default: `[]`)
+`~launch_frame` (`string`, default: `odom_frame`)
+
+The frame of waypoints specified in the launch file.
+
+`~include_start_pose` ('bool`, default: `true`)
+
+Whether to include the current position of the robot as part of the waypoint path.
+
+`~waypoints` (`array`, default: `[]`)
 
 Sets waypoints. In the form position(x, y, z) followed by orientation (x, y, z, w).
 
 `~waypoint_order` (`array`, default: `[1,2,...]`)
 
-The order to complete waypoints given by the parameter `waypoint_values`.
+The order to complete waypoints given by the parameter `waypoints`.
 
-`~gps_values` (`array`, default: `[]`)
+`~gps_waypoints` (`array`, default: `[]`)
 
 Sets waypoints. In the form position(lat, long). Requires the UTM transform provided by robot_localization's navsat_transform_node.
 
-`~gps_order` (`array`, default: `[1,2,...]`)
+`~gps_waypoint_order` (`array`, default: `[1,2,...]`)
 
-The order to complete waypoints given by the parameter `gps_values`.
+The order to complete waypoints given by the parameter `gps_waypoints`.
 
 `~lin_vel` (`double`, default: `0.5`)
 
