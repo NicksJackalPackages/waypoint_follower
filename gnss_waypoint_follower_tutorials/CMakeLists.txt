@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(waypoint_follower)
+project(gnss_waypoint_follower_tutorials)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
@@ -8,12 +8,9 @@ project(waypoint_follower)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  actionlib
-  geometry_msgs
-  move_base_msgs
-  roscpp
-  std_msgs
-  waypoint_follower_msgs
+  gnss_waypoint_follower
+  gnss_waypoint_follower_msgs
+  multi_jackal_tutorials
 )
 
 ## System dependencies are found with CMake's conventions
@@ -73,7 +70,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## Generate added messages and services with any dependencies listed here
 # generate_messages(
 #   DEPENDENCIES
-#   geometry_msgs#   move_base_msgs#   std_msgs#   waypoint_follower_msgs
+#   waypoint_follower_msgs
 # )
 
 ################################################
@@ -107,8 +104,8 @@ find_package(catkin REQUIRED COMPONENTS
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 #  INCLUDE_DIRS include
-#  LIBRARIES waypoint_follower
-#  CATKIN_DEPENDS actionlib geometry_msgs move_base_msgs roscpp std_msgs waypoint_follower_msgs
+#  LIBRARIES waypoint_follower_tutorials
+#  CATKIN_DEPENDS waypoint_follower waypoint_follower_msgs
 #  DEPENDS system_lib
 )
 
@@ -125,7 +122,7 @@ include_directories(
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/waypoint_follower.cpp
+#   src/${PROJECT_NAME}/waypoint_follower_tutorials.cpp
 # )
 
 ## Add cmake target dependencies of the library
@@ -136,8 +133,7 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-#add_executable(${PROJECT_NAME}_node src/waypoint_follower.cpp)
-add_executable(${PROJECT_NAME}2_node src/waypoint_follower2.cpp)
+# add_executable(${PROJECT_NAME}_node src/waypoint_follower_tutorials_node.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -147,16 +143,12 @@ add_executable(${PROJECT_NAME}2_node src/waypoint_follower2.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
-#add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-add_dependencies(${PROJECT_NAME}2_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-#target_link_libraries(${PROJECT_NAME}_node
+# target_link_libraries(${PROJECT_NAME}_node
 #   ${catkin_LIBRARIES}
-#)
-target_link_libraries(${PROJECT_NAME}2_node
-   ${catkin_LIBRARIES}
-)
+# )
 
 #############
 ## Install ##
@@ -198,7 +190,7 @@ target_link_libraries(${PROJECT_NAME}2_node
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_waypoint_follower.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_waypoint_follower_tutorials.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()
